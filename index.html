@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="zh-Hant" data-theme="dark">
 <head>
 <meta charset="UTF-8">
@@ -13,330 +12,387 @@
     --font: 'Noto Sans TC', sans-serif;
   }
 
-/* ── Dark theme (default) ── */
-html[data-theme=“dark”] {
-color-scheme: dark;
-–bg:      #0f1117;
-–surface: #1a1d27;
-–card:    #22263a;
-–border:  #2e3350;
-–accent:  #6c8eff;
-–accent2: #a78bfa;
-–green:   #34d399;
-–red:     #f87171;
-–yellow:  #fbbf24;
-–text:    #e8eaf6;
-–muted:   #7b82a8;
-–shadow:  rgba(0,0,0,.5);
-}
+  /* ── Dark theme (default) ── */
+  html[data-theme="dark"] {
+    color-scheme: dark;
+    --bg:      #0f1117;
+    --surface: #1a1d27;
+    --card:    #22263a;
+    --border:  #2e3350;
+    --accent:  #6c8eff;
+    --accent2: #a78bfa;
+    --green:   #34d399;
+    --red:     #f87171;
+    --yellow:  #fbbf24;
+    --text:    #e8eaf6;
+    --muted:   #7b82a8;
+    --shadow:  rgba(0,0,0,.5);
+  }
 
-/* ── Light theme ── */
-html[data-theme=“light”] {
-color-scheme: light;
-–bg:      #f4f5fb;
-–surface: #ffffff;
-–card:    #ffffff;
-–border:  #dde1f0;
-–accent:  #5b7cfa;
-–accent2: #8b6cf0;
-–green:   #1ea672;
-–red:     #e0463f;
-–yellow:  #b8860b;
-–text:    #1e2236;
-–muted:   #6b7290;
-–shadow:  rgba(30,34,54,.12);
-}
+  /* ── Light theme ── */
+  html[data-theme="light"] {
+    color-scheme: light;
+    --bg:      #f4f5fb;
+    --surface: #ffffff;
+    --card:    #ffffff;
+    --border:  #dde1f0;
+    --accent:  #5b7cfa;
+    --accent2: #8b6cf0;
+    --green:   #1ea672;
+    --red:     #e0463f;
+    --yellow:  #b8860b;
+    --text:    #1e2236;
+    --muted:   #6b7290;
+    --shadow:  rgba(30,34,54,.12);
+  }
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-html { -webkit-text-size-adjust: 100%; }
+  html { -webkit-text-size-adjust: 100%; }
 
-/* Force all inputs/selects to follow theme colors — prevents Android Chrome override */
-input, select, textarea {
-background-color: var(–surface) !important;
-color: var(–text) !important;
-}
-select option {
-background-color: var(–surface);
-color: var(–text);
-}
+  /* Force all inputs/selects to follow theme colors — prevents Android Chrome override */
+  input, select, textarea {
+    background-color: var(--surface) !important;
+    color: var(--text) !important;
+  }
+  select option {
+    background-color: var(--surface);
+    color: var(--text);
+  }
 
-body {
-background: var(–bg);
-color: var(–text);
-font-family: var(–font);
-font-size: 15px;
-min-height: 100vh;
-overflow-x: hidden;
-transition: background-color .25s, color .25s;
-}
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 15px;
+    min-height: 100vh;
+    overflow-x: hidden;
+    transition: background-color .25s, color .25s;
+  }
 
-/* ── Header ── */
-header {
-background: linear-gradient(135deg, var(–surface) 0%, var(–bg) 100%);
-border-bottom: 1px solid var(–border);
-padding: 12px 16px;
-position: sticky; top: 0; z-index: 100;
-width: 100%;
-}
-.header-row {
-display: flex; align-items: center; justify-content: space-between;
-max-width: 720px; margin: 0 auto; gap: 8px;
-}
-.header-left { display: flex; align-items: center; gap: 10px; min-width: 0; flex-shrink: 1; }
-.logo { font-size: 17px; font-weight: 700; flex-shrink: 0; white-space: nowrap; }
-.logo span { color: var(–accent); }
-.header-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+  /* ── Header ── */
+  header {
+    background: linear-gradient(135deg, var(--surface) 0%, var(--bg) 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 16px;
+    width: 100%;
+    /* Note: intentionally NOT sticky — sticky header here previously overlapped
+       page content on scroll because nothing reserved space for it. */
+  }
+  .header-row {
+    display: flex; align-items: center; justify-content: space-between;
+    max-width: 720px; margin: 0 auto; gap: 8px;
+  }
+  .header-left { display: flex; align-items: center; gap: 10px; min-width: 0; flex-shrink: 1; }
+  .logo { font-size: 17px; font-weight: 700; flex-shrink: 0; white-space: nowrap; }
+  .logo span { color: var(--accent); }
+  .header-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
 
-.icon-btn {
-background: var(–card); border: 1px solid var(–border);
-color: var(–text); border-radius: 8px; padding: 6px 9px;
-cursor: pointer; font-size: 14px; flex-shrink: 0;
--webkit-tap-highlight-color: transparent;
-display: flex; align-items: center; gap: 4px;
-}
-.icon-btn:active { border-color: var(–accent); }
+  .icon-btn {
+    background: var(--card); border: 1px solid var(--border);
+    color: var(--text); border-radius: 8px; padding: 6px 9px;
+    cursor: pointer; font-size: 14px; flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;
+    display: flex; align-items: center; gap: 4px;
+  }
+  .icon-btn:active { border-color: var(--accent); }
 
-.week-nav { display: flex; align-items: center; gap: 4px; min-width: 0; width: 100%; }
-.week-nav button {
-background: var(–card); border: 1px solid var(–border);
-color: var(–text); border-radius: 6px; padding: 5px 9px;
-cursor: pointer; font-size: 14px; flex-shrink: 0;
--webkit-tap-highlight-color: transparent;
-}
-#week-label {
-font-size: 11px; font-weight: 500; text-align: center;
-white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-min-width: 0; flex: 1;
-}
+  .week-nav { display: flex; align-items: center; gap: 4px; min-width: 0; width: 100%; }
+  .week-nav button {
+    background: var(--card); border: 1px solid var(--border);
+    color: var(--text); border-radius: 6px; padding: 5px 9px;
+    cursor: pointer; font-size: 14px; flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;
+  }
+  #week-label {
+    font-size: 11px; font-weight: 500; text-align: center;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    min-width: 0; flex: 1;
+  }
 
-.header-bottom-row { margin-top: 10px; max-width: 720px; margin-left: auto; margin-right: auto; }
+  .header-bottom-row { margin-top: 10px; max-width: 720px; margin-left: auto; margin-right: auto; }
 
-/* ── Layout ── */
-main { max-width: 720px; margin: 0 auto; padding: 16px 12px 80px; }
+  /* ── Layout ── */
+  main { max-width: 720px; margin: 0 auto; padding: 16px 12px 80px; }
 
-/* ── Summary Cards ── */
-.summary-grid {
-display: grid; grid-template-columns: repeat(3,1fr);
-gap: 8px; margin-bottom: 16px;
-}
-.s-card {
-background: var(–card); border: 1px solid var(–border);
-border-radius: 12px; padding: 12px 10px;
-display: flex; flex-direction: column; gap: 4px; min-width: 0;
-box-shadow: 0 1px 3px var(–shadow);
-}
-.s-label { font-size: 10px; color: var(–muted); text-transform: uppercase; letter-spacing: .4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.s-value { font-size: 18px; font-weight: 700; word-break: break-all; }
-.s-sub   { font-size: 10px; color: var(–muted); }
-.c-green  { color: var(–green); }
-.c-red    { color: var(–red); }
-.c-accent { color: var(–accent); }
-.c-yellow { color: var(–yellow); }
+  /* ── Summary Cards ── */
+  .summary-grid {
+    display: grid; grid-template-columns: repeat(3,1fr);
+    gap: 8px; margin-bottom: 16px;
+  }
+  .s-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 12px 10px;
+    display: flex; flex-direction: column; gap: 4px; min-width: 0;
+    box-shadow: 0 1px 3px var(--shadow);
+  }
+  .s-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .s-value { font-size: 18px; font-weight: 700; word-break: break-all; }
+  .s-sub   { font-size: 10px; color: var(--muted); }
+  .c-green  { color: var(--green); }
+  .c-red    { color: var(--red); }
+  .c-accent { color: var(--accent); }
+  .c-yellow { color: var(--yellow); }
 
-/* ── Progress ── */
-.budget-bar-wrap {
-background: var(–card); border: 1px solid var(–border);
-border-radius: 12px; padding: 14px 16px; margin-bottom: 16px;
-box-shadow: 0 1px 3px var(–shadow);
-}
-.bar-label { display: flex; justify-content: space-between; font-size: 12px; color: var(–muted); margin-bottom: 8px; }
-.bar-track { height: 10px; background: var(–border); border-radius: 99px; overflow: hidden; }
-.bar-fill {
-height: 100%; border-radius: 99px;
-background: linear-gradient(90deg,var(–accent),var(–accent2));
-transition: width .4s ease, background .3s;
-}
-.bar-fill.over { background: linear-gradient(90deg,var(–red),#ff6b6b); }
+  /* ── Progress ── */
+  .budget-bar-wrap {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 14px 16px; margin-bottom: 16px;
+    box-shadow: 0 1px 3px var(--shadow);
+  }
+  .bar-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+  .bar-track { height: 10px; background: var(--border); border-radius: 99px; overflow: hidden; }
+  .bar-fill {
+    height: 100%; border-radius: 99px;
+    background: linear-gradient(90deg,var(--accent),var(--accent2));
+    transition: width .4s ease, background .3s;
+  }
+  .bar-fill.over { background: linear-gradient(90deg,var(--red),#ff6b6b); }
 
-/* ── Alert ── */
-.alert-bar {
-display: none; background: rgba(248,113,113,.12);
-border: 1px solid rgba(248,113,113,.4); border-radius: 10px;
-padding: 10px 14px; margin-bottom: 14px;
-font-size: 14px; color: var(–red); font-weight: 500;
-}
-.alert-bar.show { display: block; }
+  /* ── Category Breakdown ── */
+  .cat-breakdown {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 14px 16px; margin-bottom: 16px;
+    box-shadow: 0 1px 3px var(--shadow);
+  }
+  .cat-row {
+    display: flex; align-items: center; gap: 8px;
+    padding: 7px 0; font-size: 13px;
+  }
+  .cat-row-icon { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .cat-row-name { flex: 1; color: var(--text); }
+  .cat-row-amt  { font-weight: 600; color: var(--text); white-space: nowrap; }
+  .cat-row-bar-track {
+    height: 4px; background: var(--border); border-radius: 99px; overflow: hidden;
+    margin-top: 4px; width: 100%;
+  }
+  .cat-row-bar-fill { height: 100%; border-radius: 99px; }
+  .cat-total-row {
+    display: flex; justify-content: space-between; align-items: center;
+    border-top: 1px solid var(--border); margin-top: 8px; padding-top: 10px;
+    font-weight: 700; font-size: 14px;
+  }
 
-/* ── Tabs ── */
-.tabs { display: flex; gap: 6px; margin-bottom: 14px; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
-.tabs::-webkit-scrollbar { display: none; }
-.tab {
-background: var(–card); border: 1px solid var(–border);
-color: var(–muted); border-radius: 8px; padding: 7px 14px;
-cursor: pointer; font-family: var(–font); font-size: 13px; font-weight: 500;
-white-space: nowrap; flex-shrink: 0;
--webkit-tap-highlight-color: transparent;
-}
-.tab.active { background: var(–accent); border-color: var(–accent); color: #fff; }
+  /* ── Alert ── */
+  .alert-bar {
+    display: none; background: rgba(248,113,113,.12);
+    border: 1px solid rgba(248,113,113,.4); border-radius: 10px;
+    padding: 10px 14px; margin-bottom: 14px;
+    font-size: 14px; color: var(--red); font-weight: 500;
+  }
+  .alert-bar.show { display: block; }
 
-/* ── Section title ── */
-.section-title {
-font-size: 12px; font-weight: 600; color: var(–muted);
-text-transform: uppercase; letter-spacing: .6px; margin-bottom: 10px;
-}
+  /* ── Tabs ── */
+  .tabs { display: flex; gap: 6px; margin-bottom: 14px; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab {
+    background: var(--card); border: 1px solid var(--border);
+    color: var(--muted); border-radius: 8px; padding: 7px 14px;
+    cursor: pointer; font-family: var(--font); font-size: 13px; font-weight: 500;
+    white-space: nowrap; flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .tab.active { background: var(--accent); border-color: var(--accent); color: #fff; }
 
-/* ── Add Entry ── */
-.add-box {
-background: var(–card); border: 1px solid var(–border);
-border-radius: 12px; padding: 14px; margin-bottom: 16px;
-box-shadow: 0 1px 3px var(–shadow);
-}
-.add-title { font-size: 12px; font-weight: 600; color: var(–muted); text-transform: uppercase; letter-spacing: .6px; margin-bottom: 10px; }
+  /* ── Section title ── */
+  .section-title {
+    font-size: 12px; font-weight: 600; color: var(--muted);
+    text-transform: uppercase; letter-spacing: .6px; margin-bottom: 10px;
+  }
 
-.add-row { display: flex; flex-direction: column; gap: 8px; }
-.add-row input, .add-row select {
-background: var(–surface); border: 1px solid var(–border);
-color: var(–text); border-radius: 8px; padding: 10px 12px;
-font-family: var(–font); font-size: 16px;
-outline: none; width: 100%; display: block;
--webkit-appearance: none; appearance: none;
-}
-.add-row select {
-background-image: url(“data:image/svg+xml,%3Csvg xmlns=‘http://www.w3.org/2000/svg’ width=‘12’ height=‘8’ viewBox=‘0 0 12 8’%3E%3Cpath d=‘M1 1l5 5 5-5’ stroke=’%237b82a8’ stroke-width=‘1.5’ fill=‘none’ stroke-linecap=‘round’/%3E%3C/svg%3E”);
-background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px;
-}
-.add-row input:focus, .add-row select:focus { border-color: var(–accent); }
-.date-hint { font-size: 11px; color: var(–muted); margin-top: -2px; }
-.btn-add {
-background: var(–accent); color: #fff; border: none;
-border-radius: 8px; padding: 11px; cursor: pointer;
-font-family: var(–font); font-size: 15px; font-weight: 600;
-width: 100%; -webkit-tap-highlight-color: transparent;
-}
+  /* ── Add Entry ── */
+  .add-box {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 14px; margin-bottom: 16px;
+    box-shadow: 0 1px 3px var(--shadow);
+  }
+  .add-title { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .6px; margin-bottom: 10px; }
 
-/* ── Entry List ── */
-.entry-list { display: flex; flex-direction: column; gap: 6px; }
-.entry-item {
-background: var(–card); border: 1px solid var(–border);
-border-radius: 10px; padding: 10px 12px;
-display: flex; align-items: center; gap: 8px; min-width: 0;
-}
-.e-date { font-size: 11px; color: var(–muted); width: 46px; flex-shrink: 0; }
-.e-cat-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
-.e-desc { flex: 1; font-size: 13px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.e-cat-badge { font-size: 10px; background: var(–surface); border-radius: 4px; padding: 2px 5px; color: var(–muted); white-space: nowrap; flex-shrink: 0; }
-.e-amt { font-size: 14px; font-weight: 600; color: var(–red); white-space: nowrap; flex-shrink: 0; }
-.e-del { background: none; border: none; color: var(–muted); cursor: pointer; font-size: 16px; padding: 4px; flex-shrink: 0; -webkit-tap-highlight-color: transparent; }
-.empty-state { text-align: center; color: var(–muted); padding: 30px 0; font-size: 14px; }
+  .add-row { display: flex; flex-direction: column; gap: 8px; }
+  .add-row input, .add-row select {
+    background: var(--surface); border: 1px solid var(--border);
+    color: var(--text); border-radius: 8px; padding: 10px 12px;
+    font-family: var(--font); font-size: 16px;
+    outline: none; width: 100%; display: block;
+    -webkit-appearance: none; appearance: none;
+  }
+  .add-row select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237b82a8' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px;
+  }
+  .add-row input:focus, .add-row select:focus { border-color: var(--accent); }
+  .date-field-wrap { position: relative; width: 100%; }
+  .date-native-input {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    opacity: 0; cursor: pointer; z-index: 2;
+  }
+  .date-display {
+    background: var(--surface); border: 1px solid var(--border);
+    color: var(--accent); border-radius: 8px; padding: 10px 12px;
+    font-family: var(--font); font-size: 16px; font-weight: 600;
+    width: 100%; cursor: pointer; pointer-events: none; /* clicks pass through to native input above */
+  }
+  .date-hint { font-size: 11px; color: var(--muted); margin-top: -2px; }
+  .btn-add {
+    background: var(--accent); color: #fff; border: none;
+    border-radius: 8px; padding: 11px; cursor: pointer;
+    font-family: var(--font); font-size: 15px; font-weight: 600;
+    width: 100%; -webkit-tap-highlight-color: transparent;
+  }
 
-/* ── Monthly ── */
-.month-week {
-background: var(–card); border: 1px solid var(–border);
-border-radius: 10px; padding: 12px; margin-bottom: 8px;
-}
-.mw-header { display: flex; justify-content: space-between; align-items: flex-start; font-size: 13px; font-weight: 600; margin-bottom: 5px; gap: 8px; }
-.mw-sub { font-size: 12px; color: var(–muted); }
+  /* ── Entry List ── */
+  .entry-list { display: flex; flex-direction: column; gap: 6px; }
+  .entry-item {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 10px 12px;
+    display: flex; align-items: center; gap: 8px; min-width: 0;
+  }
+  .e-date { font-size: 11px; color: var(--muted); width: 46px; flex-shrink: 0; }
+  .e-cat-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .e-desc { flex: 1; font-size: 13px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .e-cat-badge { font-size: 10px; background: var(--surface); border-radius: 4px; padding: 2px 5px; color: var(--muted); white-space: nowrap; flex-shrink: 0; }
+  .e-amt { font-size: 14px; font-weight: 600; color: var(--red); white-space: nowrap; flex-shrink: 0; }
+  .e-del { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 16px; padding: 4px; flex-shrink: 0; -webkit-tap-highlight-color: transparent; }
+  .empty-state { text-align: center; color: var(--muted); padding: 30px 0; font-size: 14px; }
 
-/* ── Bills Tab ── */
-.bills-section {
-background: var(–surface); border: 1px solid var(–border);
-border-radius: 12px; padding: 14px; margin-bottom: 14px;
-}
-.bills-section-header {
-display: flex; justify-content: space-between; align-items: center;
-margin-bottom: 12px; gap: 8px;
-}
-.bills-section-title { font-size: 12px; font-weight: 700; color: var(–accent); text-transform: uppercase; letter-spacing: .6px; }
+  /* ── Monthly ── */
+  .month-week {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 12px; margin-bottom: 8px;
+  }
+  .mw-header { display: flex; justify-content: space-between; align-items: flex-start; font-size: 13px; font-weight: 600; margin-bottom: 5px; gap: 8px; }
+  .mw-sub { font-size: 12px; color: var(--muted); }
 
-.bill-card {
-background: var(–card); border: 1px solid var(–border);
-border-radius: 10px; padding: 10px 12px; margin-bottom: 8px;
-}
-.bill-card-top { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
-.emoji-cell { font-size: 22px; cursor: pointer; flex-shrink: 0; user-select: none; -webkit-tap-highlight-color: transparent; }
-.bill-name-inp {
-flex: 1; background: var(–surface); border: 1px solid var(–border);
-color: var(–text); border-radius: 6px; padding: 7px 10px;
-font-family: var(–font); font-size: 15px; outline: none; min-width: 0;
--webkit-appearance: none; appearance: none;
-}
-.bill-name-inp:focus { border-color: var(–accent); }
-.bill-del-btn {
-background: none; border: none; color: var(–muted);
-cursor: pointer; font-size: 20px; padding: 4px; flex-shrink: 0;
--webkit-tap-highlight-color: transparent;
-}
-.bill-del-btn:active { color: var(–red); }
+  /* ── Bills Tab ── */
+  .bills-section {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 14px; margin-bottom: 14px;
+  }
+  .bills-section-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 12px; gap: 8px;
+  }
+  .bills-section-title { font-size: 12px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: .6px; }
 
-.bill-card-bottom { display: grid; grid-template-columns: 1fr 1fr auto; gap: 6px; align-items: center; }
-.bill-card-bottom input[type=number],
-.bill-card-bottom select {
-background: var(–surface); border: 1px solid var(–border);
-color: var(–text); border-radius: 6px; padding: 7px 8px;
-font-family: var(–font); font-size: 15px; outline: none; width: 100%;
--webkit-appearance: none; appearance: none;
-}
-.bill-card-bottom select {
-background-image: url(“data:image/svg+xml,%3Csvg xmlns=‘http://www.w3.org/2000/svg’ width=‘12’ height=‘8’ viewBox=‘0 0 12 8’%3E%3Cpath d=‘M1 1l5 5 5-5’ stroke=’%237b82a8’ stroke-width=‘1.5’ fill=‘none’ stroke-linecap=‘round’/%3E%3C/svg%3E”);
-background-repeat: no-repeat; background-position: right 8px center; padding-right: 24px;
-}
-.bill-card-bottom input:focus, .bill-card-bottom select:focus { border-color: var(–accent); }
-.weekly-cell { font-size: 13px; font-weight: 600; color: var(–yellow); white-space: nowrap; text-align: right; }
+  .bill-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 10px 12px; margin-bottom: 8px;
+  }
+  .bill-card-top { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .emoji-cell { font-size: 22px; cursor: pointer; flex-shrink: 0; user-select: none; -webkit-tap-highlight-color: transparent; }
+  .bill-name-inp {
+    flex: 1; background: var(--surface); border: 1px solid var(--border);
+    color: var(--text); border-radius: 6px; padding: 7px 10px;
+    font-family: var(--font); font-size: 15px; outline: none; min-width: 0;
+    -webkit-appearance: none; appearance: none;
+  }
+  .bill-name-inp:focus { border-color: var(--accent); }
+  .bill-del-btn {
+    background: none; border: none; color: var(--muted);
+    cursor: pointer; font-size: 20px; padding: 4px; flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .bill-del-btn:active { color: var(--red); }
 
-.btn-add-bill {
-background: var(–surface); border: 1px dashed var(–border);
-color: var(–muted); border-radius: 8px; padding: 10px;
-cursor: pointer; font-family: var(–font); font-size: 14px;
-width: 100%; margin-top: 4px; -webkit-tap-highlight-color: transparent;
-}
+  .bill-card-bottom { display: grid; grid-template-columns: 1fr 1fr auto; gap: 6px; align-items: center; }
+  .bill-card-bottom input[type=number],
+  .bill-card-bottom select {
+    background: var(--surface); border: 1px solid var(--border);
+    color: var(--text); border-radius: 6px; padding: 7px 8px;
+    font-family: var(--font); font-size: 15px; outline: none; width: 100%;
+    -webkit-appearance: none; appearance: none;
+  }
+  .bill-card-bottom select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237b82a8' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 8px center; padding-right: 24px;
+  }
+  .bill-card-bottom input:focus, .bill-card-bottom select:focus { border-color: var(--accent); }
+  .weekly-cell { font-size: 13px; font-weight: 600; color: var(--yellow); white-space: nowrap; text-align: right; }
 
-/* ── Income & breakdown ── */
-.income-summary {
-background: var(–card); border: 1px solid var(–border);
-border-radius: 12px; padding: 14px; margin-bottom: 14px;
-box-shadow: 0 1px 3px var(–shadow);
-}
-.income-edit-row { display: flex; align-items: center; gap: 8px; padding: 5px 0; }
-.income-edit-row label { flex: 1; color: var(–muted); font-size: 13px; min-width: 0; }
-.income-edit-row input {
-background: var(–surface); border: 1px solid var(–border); color: var(–text);
-border-radius: 6px; padding: 7px 10px; font-family: var(–font); font-size: 15px;
-outline: none; width: 110px; text-align: right; flex-shrink: 0;
--webkit-appearance: none; appearance: none;
-}
-.income-edit-row input:focus { border-color: var(–accent); }
-.income-total-row {
-display: flex; justify-content: space-between; align-items: center;
-border-top: 1px solid var(–border); margin-top: 8px; padding-top: 10px;
-font-weight: 700; font-size: 14px;
-}
+  .btn-add-bill {
+    background: var(--surface); border: 1px dashed var(--border);
+    color: var(--muted); border-radius: 8px; padding: 10px;
+    cursor: pointer; font-family: var(--font); font-size: 14px;
+    width: 100%; margin-top: 4px; -webkit-tap-highlight-color: transparent;
+  }
 
-.budget-breakdown {
-background: var(–card); border: 1px solid var(–border);
-border-radius: 12px; padding: 14px;
-box-shadow: 0 1px 3px var(–shadow);
-}
-.bd-row { display: flex; justify-content: space-between; align-items: center; font-size: 13px; padding: 5px 0; gap: 8px; }
-.bd-row span:first-child { color: var(–muted); }
-.bd-food-row { display: flex; align-items: center; gap: 8px; padding: 5px 0; }
-.bd-food-row label { flex: 1; color: var(–muted); font-size: 13px; }
-.bd-food-row input {
-background: var(–surface); border: 1px solid var(–border); color: var(–text);
-border-radius: 6px; padding: 7px 10px; font-family: var(–font); font-size: 15px;
-outline: none; width: 100px; text-align: right; flex-shrink: 0;
--webkit-appearance: none; appearance: none;
-}
-.bd-food-row input:focus { border-color: var(–accent); }
-.bd-divider { border: none; border-top: 1px solid var(–border); margin: 8px 0; }
-.bd-row.highlight { font-weight: 700; font-size: 14px; }
+  /* ── Income & breakdown ── */
+  .income-summary {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 14px; margin-bottom: 14px;
+    box-shadow: 0 1px 3px var(--shadow);
+  }
+  .income-edit-row { display: flex; align-items: center; gap: 8px; padding: 5px 0; }
+  .income-edit-row label { flex: 1; color: var(--muted); font-size: 13px; min-width: 0; }
+  .income-edit-row input {
+    background: var(--surface); border: 1px solid var(--border); color: var(--text);
+    border-radius: 6px; padding: 7px 10px; font-family: var(--font); font-size: 15px;
+    outline: none; width: 110px; text-align: right; flex-shrink: 0;
+    -webkit-appearance: none; appearance: none;
+  }
+  .income-edit-row input:focus { border-color: var(--accent); }
+  .income-total-row {
+    display: flex; justify-content: space-between; align-items: center;
+    border-top: 1px solid var(--border); margin-top: 8px; padding-top: 10px;
+    font-weight: 700; font-size: 14px;
+  }
 
-/* ── Emoji picker ── */
-.emoji-options {
-display: flex; flex-wrap: wrap; gap: 6px; padding: 10px;
-background: var(–card); border: 1px solid var(–border);
-border-radius: 10px; position: fixed; z-index: 300;
-max-width: 260px; box-shadow: 0 8px 24px var(–shadow);
-}
-.emoji-options span { font-size: 22px; cursor: pointer; padding: 4px; border-radius: 6px; -webkit-tap-highlight-color: transparent; }
-.emoji-options span:active { background: var(–border); }
+  .budget-breakdown {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 14px;
+    box-shadow: 0 1px 3px var(--shadow);
+  }
+  .bd-row { display: flex; justify-content: space-between; align-items: center; font-size: 13px; padding: 5px 0; gap: 8px; }
+  .bd-row span:first-child { color: var(--muted); }
+  .bd-food-row { display: flex; align-items: center; gap: 8px; padding: 5px 0; }
+  .bd-food-row label { flex: 1; color: var(--muted); font-size: 13px; }
+  .bd-food-row input {
+    background: var(--surface); border: 1px solid var(--border); color: var(--text);
+    border-radius: 6px; padding: 7px 10px; font-family: var(--font); font-size: 15px;
+    outline: none; width: 100px; text-align: right; flex-shrink: 0;
+    -webkit-appearance: none; appearance: none;
+  }
+  .bd-food-row input:focus { border-color: var(--accent); }
+  .bd-divider { border: none; border-top: 1px solid var(--border); margin: 8px 0; }
+  .bd-row.highlight { font-weight: 700; font-size: 14px; }
 
-/* ── Settings row (lang + theme) ── */
-.settings-bar {
-display: flex; gap: 8px; justify-content: flex-end;
-}
+  /* ── Emoji picker ── */
+  .emoji-options {
+    display: flex; flex-wrap: wrap; gap: 6px; padding: 10px;
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 10px; position: fixed; z-index: 300;
+    max-width: 260px; box-shadow: 0 8px 24px var(--shadow);
+  }
+  .emoji-options span { font-size: 22px; cursor: pointer; padding: 4px; border-radius: 6px; -webkit-tap-highlight-color: transparent; }
+  .emoji-options span:active { background: var(--border); }
+
+  /* ── Settings row (lang + theme) ── */
+  .settings-bar {
+    display: flex; gap: 8px; justify-content: flex-end;
+  }
+
+  /* ── Custom confirm dialog (replaces native confirm() for consistent theming) ── */
+  .confirm-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,.5);
+    z-index: 400; display: flex; align-items: center; justify-content: center;
+    padding: 20px; animation: fadeIn .15s ease;
+  }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  .confirm-box {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 14px; padding: 20px; max-width: 320px; width: 100%;
+    box-shadow: 0 12px 32px var(--shadow);
+  }
+  .confirm-message { font-size: 15px; color: var(--text); margin-bottom: 18px; line-height: 1.5; }
+  .confirm-actions { display: flex; gap: 10px; }
+  .confirm-btn {
+    flex: 1; padding: 10px; border-radius: 8px; font-family: var(--font);
+    font-size: 14px; font-weight: 600; cursor: pointer; border: 1px solid var(--border);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .confirm-btn-cancel { background: var(--surface); color: var(--text); }
+  .confirm-btn-danger { background: var(--red); color: #fff; border-color: var(--red); }
 </style>
-
 </head>
 <body>
 
@@ -362,17 +418,16 @@ display: flex; gap: 8px; justify-content: flex-end;
 <main>
 
   <!-- Summary -->
-
   <div class="summary-grid">
     <div class="s-card">
-      <div class="s-label" data-i18n="foodBudgetLabel">伙食週預算</div>
+      <div class="s-label" data-i18n="foodBudgetLabel">每週生活費預算</div>
       <div class="s-value c-accent" id="sum-budget">$350</div>
       <div class="s-sub" data-i18n="perWeekAvailable">每週可用</div>
     </div>
     <div class="s-card">
       <div class="s-label" data-i18n="spentThisWeek">本週已花</div>
       <div class="s-value c-yellow" id="sum-spent">$0</div>
-      <div class="s-sub" data-i18n="foodTotal">伙食合計</div>
+      <div class="s-sub" data-i18n="foodTotal">全部支出合計</div>
     </div>
     <div class="s-card">
       <div class="s-label" data-i18n="remainOver">剩餘/超支</div>
@@ -382,18 +437,25 @@ display: flex; gap: 8px; justify-content: flex-end;
   </div>
 
   <!-- Progress -->
-
   <div class="budget-bar-wrap">
-    <div class="bar-label"><span data-i18n="budgetUsage">伙食預算使用率</span><span id="bar-pct">0%</span></div>
+    <div class="bar-label"><span data-i18n="budgetUsage">週生活費預算使用率</span><span id="bar-pct">0%</span></div>
     <div class="bar-track"><div class="bar-fill" id="bar-fill" style="width:0%"></div></div>
   </div>
 
-  <!-- Alert -->
+  <!-- Category Breakdown (all categories, no budget cap except food) -->
+  <div class="cat-breakdown">
+    <div class="section-title" data-i18n="categoryBreakdown">本週各分類花費</div>
+    <div id="cat-breakdown-list"></div>
+    <div class="cat-total-row">
+      <span data-i18n="weekGrandTotal">本週總支出（全部類別）</span>
+      <span class="c-accent" id="cat-grand-total">$0.00</span>
+    </div>
+  </div>
 
-  <div class="alert-bar" id="alert-bar" data-i18n="overspendAlert">⚠️ 本週伙食已超支！請留意飲食支出。</div>
+  <!-- Alert -->
+  <div class="alert-bar" id="alert-bar" data-i18n="overspendAlert">⚠️ 本週生活費已超支！請留意所有支出。</div>
 
   <!-- Tabs -->
-
   <div class="tabs">
     <button class="tab active" onclick="switchTab('week')" data-i18n="tabWeek">本週記帳</button>
     <button class="tab" onclick="switchTab('month')" data-i18n="tabMonth">月度總覽</button>
@@ -401,14 +463,16 @@ display: flex; gap: 8px; justify-content: flex-end;
   </div>
 
   <!-- ═══ TAB: Week ═══ -->
-
   <div id="tab-week">
     <div class="add-box">
       <div class="add-title" data-i18n="addExpense">新增支出</div>
       <div class="add-row">
         <input id="inp-desc" type="text" data-i18n-placeholder="descPlaceholder" placeholder="說明（如：超市買菜）" />
         <input id="inp-amt" type="number" step="0.01" data-i18n-placeholder="amtPlaceholder" placeholder="金額 $" inputmode="decimal" />
-        <input id="inp-date" type="date" />
+        <div class="date-field-wrap">
+          <input id="inp-date" type="date" class="date-native-input" />
+          <div class="date-display" id="date-display" onclick="document.getElementById('inp-date').showPicker ? document.getElementById('inp-date').showPicker() : document.getElementById('inp-date').focus()">—</div>
+        </div>
         <div class="date-hint" id="date-hint">格式：DD/MM/YYYY（澳洲格式）</div>
         <select id="inp-cat">
           <option value="food" data-i18n="catFood">🛒 伙食</option>
@@ -427,60 +491,56 @@ display: flex; gap: 8px; justify-content: flex-end;
   </div>
 
   <!-- ═══ TAB: Month ═══ -->
-
   <div id="tab-month" style="display:none">
     <div class="section-title" data-i18n="monthlyOverview">月度週別總覽</div>
     <div id="month-list"></div>
   </div>
 
   <!-- ═══ TAB: Bills ═══ -->
-
   <div id="tab-bills" style="display:none">
 
-```
-<div class="income-summary">
-  <div class="section-title" style="margin-bottom:10px" data-i18n="weeklyIncome">💰 每週收入</div>
-  <div class="income-edit-row">
-    <label data-i18n="salaryLabel">💼 每週薪資</label>
-    <input type="number" id="inc-salary" inputmode="decimal" step="1" oninput="saveSettings();renderBillsTab()" />
-  </div>
-  <div class="income-edit-row">
-    <label data-i18n="subsidyLabel">🏛️ 政府補助（每兩週）</label>
-    <input type="number" id="inc-subsidy" inputmode="decimal" step="1" oninput="saveSettings();renderBillsTab()" />
-  </div>
-  <div class="income-total-row">
-    <span style="color:var(--muted)" data-i18n="weeklyIncomeTotal">週收入合計</span>
-    <span class="c-green" id="total-income-display">$1,250.00</span>
-  </div>
-</div>
+    <div class="income-summary">
+      <div class="section-title" style="margin-bottom:10px" data-i18n="weeklyIncome">💰 每週收入</div>
+      <div class="income-edit-row">
+        <label data-i18n="salaryLabel">💼 每週薪資</label>
+        <input type="number" id="inc-salary" inputmode="decimal" step="1" oninput="saveSettings();renderBillsTab()" />
+      </div>
+      <div class="income-edit-row">
+        <label data-i18n="subsidyLabel">🏛️ 政府補助（每兩週）</label>
+        <input type="number" id="inc-subsidy" inputmode="decimal" step="1" oninput="saveSettings();renderBillsTab()" />
+      </div>
+      <div class="income-total-row">
+        <span style="color:var(--muted)" data-i18n="weeklyIncomeTotal">週收入合計</span>
+        <span class="c-green" id="total-income-display">$1,250.00</span>
+      </div>
+    </div>
 
-<div class="bills-section">
-  <div class="bills-section-header">
-    <div class="bills-section-title" data-i18n="fixedExpenseItems">🏷️ 固定支出項目</div>
-    <span style="font-size:11px;color:var(--muted)" data-i18n="tapToEdit">點擊可編輯</span>
-  </div>
-  <div id="bills-list"></div>
-  <button class="btn-add-bill" onclick="addBill()" data-i18n="addBillBtn">＋ 新增固定支出</button>
-</div>
+    <div class="bills-section">
+      <div class="bills-section-header">
+        <div class="bills-section-title" data-i18n="fixedExpenseItems">🏷️ 固定支出項目</div>
+        <span style="font-size:11px;color:var(--muted)" data-i18n="tapToEdit">點擊可編輯</span>
+      </div>
+      <div id="bills-list"></div>
+      <button class="btn-add-bill" onclick="addBill()" data-i18n="addBillBtn">＋ 新增固定支出</button>
+    </div>
 
-<div class="budget-breakdown">
-  <div class="section-title" style="margin-bottom:10px" data-i18n="budgetCalc">📊 預算試算</div>
-  <div class="bd-row"><span data-i18n="weeklyIncomeRow">週收入</span><span class="c-green" id="bd-income">$1,250.00</span></div>
-  <div class="bd-row"><span data-i18n="fixedExpenseWeekly">固定支出（週均）</span><span class="c-red" id="bd-fixed">-$755.98</span></div>
-  <hr class="bd-divider">
-  <div class="bd-row highlight"><span data-i18n="disposableBalance">可支配餘額</span><span class="c-accent" id="bd-disposable">$494.02</span></div>
-  <hr class="bd-divider">
-  <div class="bd-food-row">
-    <label data-i18n="foodBudgetWeekly">🛒 伙食預算（每週）</label>
-    <input type="number" id="food-budget-inp" inputmode="decimal" step="1" oninput="saveSettings();renderAll()" />
-  </div>
-  <div class="bd-row highlight" style="margin-top:6px">
-    <span data-i18n="suggestedSavings">🐷 建議每週存款</span>
-    <span class="c-green" id="bd-savings">$144.02</span>
-  </div>
-  <div class="bd-row"><span data-i18n="monthlySavingsGoal">💰 月存款目標（×4.3）</span><span class="c-green" id="bd-monthly-savings">≈ $619</span></div>
-</div>
-```
+    <div class="budget-breakdown">
+      <div class="section-title" style="margin-bottom:10px" data-i18n="budgetCalc">📊 預算試算</div>
+      <div class="bd-row"><span data-i18n="weeklyIncomeRow">週收入</span><span class="c-green" id="bd-income">$1,250.00</span></div>
+      <div class="bd-row"><span data-i18n="fixedExpenseWeekly">固定支出（週均）</span><span class="c-red" id="bd-fixed">-$755.98</span></div>
+      <hr class="bd-divider">
+      <div class="bd-row highlight"><span data-i18n="disposableBalance">可支配餘額</span><span class="c-accent" id="bd-disposable">$494.02</span></div>
+      <hr class="bd-divider">
+      <div class="bd-food-row">
+        <label data-i18n="foodBudgetWeekly">🛒 每週生活費預算</label>
+        <input type="number" id="food-budget-inp" inputmode="decimal" step="1" oninput="saveSettings();renderAll()" />
+      </div>
+      <div class="bd-row highlight" style="margin-top:6px">
+        <span data-i18n="suggestedSavings">🐷 建議每週存款</span>
+        <span class="c-green" id="bd-savings">$144.02</span>
+      </div>
+      <div class="bd-row"><span data-i18n="monthlySavingsGoal">💰 月存款目標（×4.3）</span><span class="c-green" id="bd-monthly-savings">≈ $619</span></div>
+    </div>
 
   </div>
 
@@ -492,11 +552,13 @@ display: flex; gap: 8px; justify-content: flex-end;
 // ═══════════════════════════════════════
 const I18N = {
   'zh-Hant': {
-    foodBudgetLabel: '伙食週預算', perWeekAvailable: '每週可用',
-    spentThisWeek: '本週已花', foodTotal: '伙食合計',
+    foodBudgetLabel: '每週生活費預算', perWeekAvailable: '每週可用',
+    spentThisWeek: '本週已花', foodTotal: '全部支出合計',
     remainOver: '剩餘/超支', stillAvailable: '還可以花', overspentLabel: '⚠️ 已超支',
-    budgetUsage: '伙食預算使用率',
-    overspendAlert: '⚠️ 本週伙食已超支！請留意飲食支出。',
+    budgetUsage: '週生活費預算使用率',
+    categoryBreakdown: '本週各分類花費', weekGrandTotal: '本週總支出（全部類別）',
+    weeklyBudgetLabel: '週預算',
+    overspendAlert: '⚠️ 本週生活費已超支！請留意所有支出。',
     tabWeek: '本週記帳', tabMonth: '月度總覽', tabBills: '固定支出設定',
     addExpense: '新增支出',
     descPlaceholder: '說明（如：超市買菜）', amtPlaceholder: '金額 $',
@@ -509,10 +571,12 @@ const I18N = {
     weeklyIncomeTotal: '週收入合計',
     fixedExpenseItems: '🏷️ 固定支出項目', tapToEdit: '點擊可編輯', addBillBtn: '＋ 新增固定支出',
     budgetCalc: '📊 預算試算', weeklyIncomeRow: '週收入', fixedExpenseWeekly: '固定支出（週均）',
-    disposableBalance: '可支配餘額', foodBudgetWeekly: '🛒 伙食預算（每週）',
+    disposableBalance: '可支配餘額', foodBudgetWeekly: '🛒 每週生活費預算',
     suggestedSavings: '🐷 建議每週存款', monthlySavingsGoal: '💰 月存款目標（×4.3）',
     perWeek: '/週', confirmDeleteBill: '確認刪除此固定支出項目？', confirmDeleteEntry: '確認刪除此筆記錄？',
+    cancelBtn: '取消', confirmBtn: '刪除', okBtn: '知道了',
     fillAmtDate: '請填寫金額與日期', billNamePlaceholder: '支出名稱', amtOnlyPlaceholder: '金額',
+    amountTooLarge: '金額似乎太大了，請確認輸入是否正確',
     noDescription: '（無說明）', noData: '暫無資料',
     thisWeek: '本週', weeksAgo: '週前', weeksLater: '週後',
     allExpense: '全部支出', foodColon: '伙食', overspendShort: '超支', remainShort: '剩',
@@ -522,11 +586,13 @@ const I18N = {
     logoText1: '省', logoText2: '錢', logoText3: '計劃',
   },
   'en': {
-    foodBudgetLabel: 'Food Budget', perWeekAvailable: 'per week',
-    spentThisWeek: 'Spent This Week', foodTotal: 'food total',
+    foodBudgetLabel: 'Weekly Budget', perWeekAvailable: 'per week',
+    spentThisWeek: 'Spent This Week', foodTotal: 'all spending',
     remainOver: 'Remain/Over', stillAvailable: 'still available', overspentLabel: '⚠️ Overspent',
-    budgetUsage: 'Food Budget Usage',
-    overspendAlert: "⚠️ You've overspent your food budget this week!",
+    budgetUsage: 'Weekly Budget Usage',
+    categoryBreakdown: "This Week's Spending by Category", weekGrandTotal: 'Total Spent This Week (All Categories)',
+    weeklyBudgetLabel: 'Weekly Budget',
+    overspendAlert: "⚠️ You've overspent your weekly budget!",
     tabWeek: 'This Week', tabMonth: 'Monthly Overview', tabBills: 'Fixed Expenses',
     addExpense: 'Add Expense',
     descPlaceholder: 'Description (e.g. Groceries)', amtPlaceholder: 'Amount $',
@@ -539,10 +605,12 @@ const I18N = {
     weeklyIncomeTotal: 'Total Weekly Income',
     fixedExpenseItems: '🏷️ Fixed Expense Items', tapToEdit: 'Tap to edit', addBillBtn: '＋ Add Fixed Expense',
     budgetCalc: '📊 Budget Breakdown', weeklyIncomeRow: 'Weekly Income', fixedExpenseWeekly: 'Fixed Expenses (weekly avg)',
-    disposableBalance: 'Disposable Balance', foodBudgetWeekly: '🛒 Food Budget (per week)',
+    disposableBalance: 'Disposable Balance', foodBudgetWeekly: '🛒 Weekly Budget',
     suggestedSavings: '🐷 Suggested Weekly Savings', monthlySavingsGoal: '💰 Monthly Savings Goal (×4.3)',
     perWeek: '/wk', confirmDeleteBill: 'Delete this fixed expense item?', confirmDeleteEntry: 'Delete this entry?',
+    cancelBtn: 'Cancel', confirmBtn: 'Delete', okBtn: 'OK',
     fillAmtDate: 'Please fill in amount and date', billNamePlaceholder: 'Expense name', amtOnlyPlaceholder: 'Amount',
+    amountTooLarge: 'That amount looks too large — please double check',
     noDescription: '(no description)', noData: 'No data yet',
     thisWeek: 'This week', weeksAgo: 'wk ago', weeksLater: 'wk later',
     allExpense: 'Total spent', foodColon: 'Food', overspendShort: 'over by', remainShort: 'left',
@@ -572,6 +640,68 @@ function safeGet(key, fallback) {
 function safeSet(key, value) {
   try { localStorage.setItem(key, value); }
   catch (e) { storageAvailable = false; }
+}
+
+// Escape user-entered text before inserting into innerHTML (description, bill names, etc.)
+// Prevents e.g. a description like "<img src=x onerror=alert(1)>" from executing as HTML.
+function escapeHtml(str) {
+  if (str == null) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+// Custom themed alert — single-button version, replaces native alert()
+function alertDialog(message) {
+  return new Promise(resolve => {
+    document.querySelectorAll('.confirm-overlay').forEach(el => el.remove());
+    const overlay = document.createElement('div');
+    overlay.className = 'confirm-overlay';
+    overlay.innerHTML = `
+      <div class="confirm-box">
+        <div class="confirm-message"></div>
+        <div class="confirm-actions">
+          <button class="confirm-btn confirm-btn-danger" data-action="ok" style="flex:1"></button>
+        </div>
+      </div>`;
+    overlay.querySelector('.confirm-message').textContent = message;
+    overlay.querySelector('[data-action="ok"]').textContent = t('okBtn');
+    function cleanup() { overlay.remove(); resolve(); }
+    overlay.querySelector('[data-action="ok"]').onclick = cleanup;
+    overlay.onclick = (e) => { if (e.target === overlay) cleanup(); };
+    document.body.appendChild(overlay);
+  });
+}
+
+// Custom themed confirm dialog — replaces native confirm() which can't be styled
+// and looks jarring on mobile. Usage: confirmDialog(message).then(ok => { if (ok) ... })
+function confirmDialog(message) {
+  return new Promise(resolve => {
+    document.querySelectorAll('.confirm-overlay').forEach(el => el.remove());
+    const overlay = document.createElement('div');
+    overlay.className = 'confirm-overlay';
+    overlay.innerHTML = `
+      <div class="confirm-box">
+        <div class="confirm-message"></div>
+        <div class="confirm-actions">
+          <button class="confirm-btn confirm-btn-cancel" data-action="cancel"></button>
+          <button class="confirm-btn confirm-btn-danger" data-action="ok"></button>
+        </div>
+      </div>`;
+    overlay.querySelector('.confirm-message').textContent = message;
+    overlay.querySelector('[data-action="cancel"]').textContent = t('cancelBtn');
+    overlay.querySelector('[data-action="ok"]').textContent = t('confirmBtn');
+
+    function cleanup(result) { overlay.remove(); resolve(result); }
+    overlay.querySelector('[data-action="cancel"]').onclick = () => cleanup(false);
+    overlay.querySelector('[data-action="ok"]').onclick = () => cleanup(true);
+    overlay.onclick = (e) => { if (e.target === overlay) cleanup(false); }; // click outside = cancel
+
+    document.body.appendChild(overlay);
+  });
 }
 
 // ── Data ──
@@ -663,6 +793,15 @@ function fmtDateShortAU(d) {
   return `${dd}/${mm}`;
 }
 function fmtDateInp(d) { return d.toISOString().slice(0,10); } // yyyy-mm-dd required by <input type=date>
+
+// Keep the custom DD/MM/YYYY display in sync with the native (locale-dependent) date input
+function syncDateDisplay() {
+  const inp = document.getElementById('inp-date');
+  const disp = document.getElementById('date-display');
+  if (!inp.value) { disp.textContent = '—'; return; }
+  const d = new Date(inp.value + 'T00:00:00');
+  disp.textContent = fmtDateAU(d);
+}
 function isoDisplayAU(iso) {
   // Convert stored yyyy-mm-dd to DD/MM display
   const d = new Date(iso+'T00:00:00');
@@ -673,8 +812,8 @@ function getWeekEntries(offset) {
   const {monday,sunday} = getWeekDates(offset);
   return entries.filter(e => { const d=new Date(e.date+'T00:00:00'); return d>=monday&&d<=sunday; });
 }
-function getFoodSpent(offset)  { return getWeekEntries(offset).filter(e=>e.cat==='food').reduce((s,e)=>s+e.amt,0); }
-function getTotalSpent(offset) { return getWeekEntries(offset).reduce((s,e)=>s+e.amt,0); }
+function getWeekSpent(offset)  { return getWeekEntries(offset).reduce((s,e)=>s+e.amt,0); } // ALL categories count toward the weekly budget
+function getTotalSpent(offset) { return getWeekEntries(offset).reduce((s,e)=>s+e.amt,0); } // kept as alias for monthly view compatibility
 
 function saveSettings() {
   settings.salary     = parseFloat(document.getElementById('inc-salary').value)      || 0;
@@ -742,14 +881,14 @@ function renderWeekLabel() {
 
 // ── Render: summary ──
 function renderSummary() {
-  const food   = getFoodSpent(currentWeekOffset);
-  const budget = settings.foodBudget;
-  const remain = budget - food;
-  const over   = food > budget;
-  const pct    = budget > 0 ? Math.min(food/budget*100, 100) : 0;
+  const spent  = getWeekSpent(currentWeekOffset); // ALL categories combined
+  const budget = settings.foodBudget; // this is now the overall weekly spending budget
+  const remain = budget - spent;
+  const over   = spent > budget;
+  const pct    = budget > 0 ? Math.min(spent/budget*100, 100) : 0;
 
   document.getElementById('sum-budget').textContent = fmt(budget);
-  document.getElementById('sum-spent').textContent  = fmt(food);
+  document.getElementById('sum-spent').textContent  = fmt(spent);
   document.getElementById('sum-spent').className    = 's-value '+(over?'c-red':'c-yellow');
   document.getElementById('sum-remain').textContent = fmt(Math.abs(remain));
   document.getElementById('sum-remain').className   = 's-value '+(over?'c-red':'c-green');
@@ -759,6 +898,37 @@ function renderSummary() {
   fill.style.width = pct+'%';
   fill.className = 'bar-fill'+(over?' over':'');
   document.getElementById('alert-bar').className = 'alert-bar'+(over?' show':'');
+
+  renderCategoryBreakdown();
+}
+
+// ── Render: category breakdown (all categories — informational, shows where the budget went) ──
+const CAT_ORDER = ['food','transport','kids','health','misc'];
+function renderCategoryBreakdown() {
+  const we = getWeekEntries(currentWeekOffset);
+  const totals = {};
+  CAT_ORDER.forEach(c => totals[c] = 0);
+  we.forEach(e => { totals[e.cat] = (totals[e.cat]||0) + e.amt; });
+
+  const grandTotal = CAT_ORDER.reduce((s,c) => s + totals[c], 0);
+  const maxVal = Math.max(...CAT_ORDER.map(c => totals[c]), 1); // avoid div-by-zero for mini bars
+
+  const list = document.getElementById('cat-breakdown-list');
+  list.innerHTML = CAT_ORDER.map(c => {
+    const amt = totals[c];
+    const barPct = grandTotal > 0 ? Math.min((amt/maxVal)*100, 100) : 0;
+    return `
+      <div class="cat-row-wrap">
+        <div class="cat-row">
+          <span class="cat-row-icon" style="background:${CAT_COLORS[c]}"></span>
+          <span class="cat-row-name">${catName(c)}</span>
+          <span class="cat-row-amt">${fmt(amt)}</span>
+        </div>
+        <div class="cat-row-bar-track"><div class="cat-row-bar-fill" style="width:${barPct}%;background:${CAT_COLORS[c]}"></div></div>
+      </div>`;
+  }).join('');
+
+  document.getElementById('cat-grand-total').textContent = fmt(grandTotal);
 }
 
 // ── Render: entries ──
@@ -771,7 +941,7 @@ function renderEntries() {
     <div class="entry-item">
       <span class="e-date">${isoDisplayAU(e.date)}</span>
       <span class="e-cat-dot" style="background:${CAT_COLORS[e.cat]||'#7b82a8'}"></span>
-      <span class="e-desc">${e.desc || t('noDescription')}</span>
+      <span class="e-desc">${escapeHtml(e.desc) || t('noDescription')}</span>
       <span class="e-cat-badge">${catName(e.cat)}</span>
       <span class="e-amt">-${fmt(e.amt)}</span>
       <button class="e-del" onclick="deleteEntry('${e.id}')">✕</button>
@@ -785,19 +955,18 @@ function renderMonth() {
   let html = '';
   for (let i=0;i>=-4;i--) {
     const {monday,sunday} = getWeekDates(i);
-    const food  = getFoodSpent(i);
-    const total = getTotalSpent(i);
-    const over  = food > budget;
+    const spent = getWeekSpent(i);
+    const over  = spent > budget;
     const label = i===0 ? t('thisWeek') : `${Math.abs(i)} ${t('weeksAgo')}`;
     html += `
       <div class="month-week">
         <div class="mw-header">
           <span>${label} (${fmtDateShortAU(monday)}–${fmtDateShortAU(sunday)})</span>
-          <span style="color:${over?'var(--red)':'var(--green)'}">${fmt(food)}</span>
+          <span style="color:${over?'var(--red)':'var(--green)'}">${fmt(spent)}</span>
         </div>
-        <div class="mw-sub">${t('allExpense')}: ${fmt(total)} | ${t('foodColon')}: ${over
-          ? `<span style="color:var(--red)">${t('overspendShort')} ${fmt(food-budget)}</span>`
-          : `<span style="color:var(--green)">${t('remainShort')} ${fmt(budget-food)}</span>`}
+        <div class="mw-sub">${t('weeklyBudgetLabel')}: ${fmt(budget)} | ${over
+          ? `<span style="color:var(--red)">${t('overspendShort')} ${fmt(spent-budget)}</span>`
+          : `<span style="color:var(--green)">${t('remainShort')} ${fmt(budget-spent)}</span>`}
         </div>
       </div>`;
   }
@@ -832,7 +1001,7 @@ function renderBillsTab() {
       <div class="bill-card" id="bill-row-${b.id}">
         <div class="bill-card-top">
           <span class="emoji-cell" onclick="pickEmoji('${b.id}',this)">${b.emoji}</span>
-          <input class="bill-name-inp" type="text" value="${b.name}" placeholder="${t('billNamePlaceholder')}"
+          <input class="bill-name-inp" type="text" value="${escapeHtml(b.name)}" placeholder="${t('billNamePlaceholder')}"
                  oninput="updateBill('${b.id}','name',this.value)" />
           <button class="bill-del-btn" onclick="deleteBill('${b.id}')">🗑</button>
         </div>
@@ -870,8 +1039,9 @@ function addBill() {
   if (rows.length) rows[rows.length-1].focus();
 }
 
-function deleteBill(id) {
-  if (!confirm(t('confirmDeleteBill'))) return;
+async function deleteBill(id) {
+  const ok = await confirmDialog(t('confirmDeleteBill'));
+  if (!ok) return;
   settings.bills = settings.bills.filter(b=>b.id!==id);
   safeSet('budget_settings', JSON.stringify(settings));
   renderBillsTab();
@@ -911,16 +1081,20 @@ function addEntry() {
   const amt  = parseFloat(document.getElementById('inp-amt').value);
   const date = document.getElementById('inp-date').value;
   const cat  = document.getElementById('inp-cat').value;
-  if (!amt||amt<=0||!date) { alert(t('fillAmtDate')); return; }
-  entries.push({ id:Date.now().toString(36), desc, amt, date, cat });
+  if (!amt || amt<=0 || !date) { alertDialog(t('fillAmtDate')); return; }
+  if (amt > 1000000) { alertDialog(t('amountTooLarge')); return; }
+  // Date.now() + random suffix avoids any (extremely unlikely) id collision on rapid double-clicks
+  const id = Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+  entries.push({ id, desc, amt, date, cat });
   saveEntries();
   document.getElementById('inp-desc').value = '';
   document.getElementById('inp-amt').value  = '';
   renderAll();
 }
 
-function deleteEntry(id) {
-  if (!confirm(t('confirmDeleteEntry'))) return;
+async function deleteEntry(id) {
+  const ok = await confirmDialog(t('confirmDeleteEntry'));
+  if (!ok) return;
   entries = entries.filter(e=>e.id!==id);
   saveEntries(); renderAll();
 }
@@ -957,6 +1131,10 @@ window.onload = () => {
   document.getElementById('inc-subsidy').value     = settings.subsidy;
   document.getElementById('food-budget-inp').value = settings.foodBudget;
 
+  dateInp.addEventListener('change', syncDateDisplay);
+  dateInp.addEventListener('input', syncDateDisplay);
+  syncDateDisplay();
+
   applyTranslations();
   renderBillsTab();
   renderAll();
@@ -966,6 +1144,5 @@ window.onload = () => {
   }
 };
 </script>
-
 </body>
 </html>
