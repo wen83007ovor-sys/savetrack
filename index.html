@@ -146,23 +146,20 @@
 
   /* ── Progress ── */
   /* ── Extra Income (week tab) ── */
-  .extra-income-box {
-    background: var(--card); border: 1px solid var(--border);
-    border-radius: 12px; padding: 14px; margin-top: 16px;
-    box-shadow: 0 1px 3px var(--shadow);
+  /* ── Variable income rows (inside income-summary card in bills tab) ── */
+  .income-section-label {
+    font-size: 11px; font-weight: 700; color: var(--muted);
+    text-transform: uppercase; letter-spacing: .5px;
+    margin-bottom: 6px; margin-top: 4px;
   }
-  .extra-income-header {
-    display: flex; align-items: center; justify-content: space-between;
-    margin-bottom: 10px;
-  }
-  .extra-income-add-btn {
-    background: var(--accent); color: #fff; border: none;
-    border-radius: 8px; width: 30px; height: 30px; font-size: 18px; line-height: 1;
-    cursor: pointer; flex-shrink: 0; -webkit-tap-highlight-color: transparent;
-    display: flex; align-items: center; justify-content: center;
+  .btn-add-variable-income {
+    background: var(--surface); border: 1px dashed var(--border);
+    color: var(--accent); border-radius: 8px; padding: 7px 12px;
+    cursor: pointer; font-family: var(--font); font-size: 13px; font-weight: 600;
+    width: 100%; margin: 4px 0 10px 0; -webkit-tap-highlight-color: transparent;
   }
   .extra-income-item {
-    display: flex; align-items: center; gap: 8px; padding: 6px 0;
+    display: flex; align-items: center; gap: 8px; padding: 5px 0;
     border-bottom: 1px solid var(--border);
   }
   .extra-income-item:last-of-type { border-bottom: none; }
@@ -186,12 +183,10 @@
     cursor: pointer; font-size: 16px; padding: 4px; flex-shrink: 0;
     -webkit-tap-highlight-color: transparent;
   }
-  .extra-income-total-row {
-    display: flex; justify-content: space-between; align-items: center;
-    font-size: 13px; font-weight: 600; padding-top: 10px;
-    border-top: 1px solid var(--border); margin-top: 8px;
+  .ei-del:active { color: var(--red); }
+  .ei-empty {
+    font-size: 12px; color: var(--muted); padding: 4px 0 8px 0;
   }
-  .extra-income-total-row span:first-child { color: var(--muted); }
 
   .carryover-note {
     font-size: 12px; text-align: center; padding: 6px 10px;
@@ -657,19 +652,6 @@
     <div class="entry-list" id="entry-list">
       <div class="empty-state" data-i18n="noEntries">本週還沒有記帳記錄 🌟</div>
     </div>
-
-    <!-- Extra income this week -->
-    <div class="extra-income-box">
-      <div class="extra-income-header">
-        <span class="section-title" style="margin-bottom:0" data-i18n="extraIncomeTitle">本週額外收入</span>
-        <button class="extra-income-add-btn" onclick="addExtraIncome()">＋</button>
-      </div>
-      <div id="extra-income-list"></div>
-      <div class="extra-income-total-row">
-        <span data-i18n="extraIncomeTotal">本週額外收入合計</span>
-        <span class="c-green" id="extra-income-total">$0.00</span>
-      </div>
-    </div>
   </div>
 
   <!-- ═══ TAB: Month ═══ -->
@@ -683,6 +665,9 @@
 
     <div class="income-summary">
       <div class="section-title" style="margin-bottom:10px" data-i18n="weeklyIncome">💰 每週收入</div>
+
+      <!-- Fixed income (always the same) -->
+      <div class="income-section-label" data-i18n="fixedIncomeLabel">📌 固定收入</div>
       <div class="income-edit-row">
         <label data-i18n="salaryLabel">💼 每週薪資</label>
         <input type="number" id="inc-salary" inputmode="decimal" step="1" oninput="saveSettings();renderBillsTab()" />
@@ -691,6 +676,13 @@
         <label data-i18n="subsidyLabel">🏛️ 政府補助（每兩週）</label>
         <input type="number" id="inc-subsidy" inputmode="decimal" step="1" oninput="saveSettings();renderBillsTab()" />
       </div>
+
+      <!-- Variable income (changes week to week) -->
+      <div class="income-section-label" style="margin-top:12px" data-i18n="variableIncomeLabel">📈 本週浮動收入</div>
+      <div id="extra-income-list"></div>
+      <button class="btn-add-variable-income" onclick="addExtraIncome()" data-i18n="addVariableIncomeBtn">＋ 新增收入項目</button>
+
+      <!-- Grand total -->
       <div class="income-total-row">
         <span style="color:var(--muted)" data-i18n="weeklyIncomeTotal">週收入合計</span>
         <span class="c-green" id="total-income-display">$1,250.00</span>
@@ -758,10 +750,12 @@ const I18N = {
     spentThisWeek: '本週已花', foodTotal: '全部支出合計',
     remainOver: '剩餘/超支', stillAvailable: '還可以花', overspentLabel: '⚠️ 已超支',
     carryoverPositive: '💰 已加入上週結餘', carryoverNegative: '⚠️ 已扣除上週超支',
-    extraIncomeAdded: '💼 已加入額外收入',
-    extraIncomeTitle: '本週額外收入', extraIncomeTotal: '本週額外收入合計',
-    noExtraIncome: '本週尚未記錄額外收入',
-    extraIncomeDescPlaceholder: '說明（如：接案收入、兼職）',
+    extraIncomeAdded: '💼 已加入本週浮動收入',
+    extraIncomeTitle: '本週浮動收入', extraIncomeTotal: '本週浮動收入合計',
+    noExtraIncome: '本週尚未記錄浮動收入',
+    extraIncomeDescPlaceholder: '收入來源名稱（如：按摩兼職、網站接案）',
+    fixedIncomeLabel: '📌 固定收入', variableIncomeLabel: '📈 本週浮動收入',
+    addVariableIncomeBtn: '＋ 新增收入項目',
     budgetUsage: '週生活費預算使用率',
     categoryBreakdown: '本週各分類花費', weekGrandTotal: '本週總支出（全部類別）',
     weeklyBudgetLabel: '週預算',
@@ -808,10 +802,12 @@ const I18N = {
     spentThisWeek: 'Spent This Week', foodTotal: 'all spending',
     remainOver: 'Remain/Over', stillAvailable: 'still available', overspentLabel: '⚠️ Overspent',
     carryoverPositive: '💰 Includes carryover from last week', carryoverNegative: '⚠️ Deducted overspend from last week',
-    extraIncomeAdded: '💼 Includes extra income',
-    extraIncomeTitle: 'Extra Income This Week', extraIncomeTotal: 'Total Extra Income This Week',
-    noExtraIncome: 'No extra income recorded this week',
-    extraIncomeDescPlaceholder: 'Description (e.g. Freelance, Part-time)',
+    extraIncomeAdded: '💼 Includes variable income this week',
+    extraIncomeTitle: 'Variable Income This Week', extraIncomeTotal: 'Total Variable Income',
+    noExtraIncome: 'No variable income recorded this week',
+    extraIncomeDescPlaceholder: 'Income source (e.g. Massage shift, Freelance project)',
+    fixedIncomeLabel: '📌 Fixed Income', variableIncomeLabel: '📈 Variable Income This Week',
+    addVariableIncomeBtn: '＋ Add Income',
     budgetUsage: 'Weekly Budget Usage',
     categoryBreakdown: "This Week's Spending by Category", weekGrandTotal: 'Total Spent This Week (All Categories)',
     weeklyBudgetLabel: 'Weekly Budget',
@@ -1101,21 +1097,17 @@ function getEarliestEntryOffset() {
 }
 
 function getCarryoverBalance(uptoOffset) {
-  // Cumulative carryover = (number of counted weeks × base budget) - (total spent across those weeks).
-  // This is the closed-form of the recursive rule "each week's budget = base + previous week's carryover",
-  // which telescopes to: carryover_N = N*base - sum(spent_1..N). Weeks with NO logged entries at all are
-  // excluded entirely (not counted as a $0-spent week), since a week you forgot to log shouldn't inflate
-  // your carryover with a free "full budget saved."
+  // Carryover = how much of the LIVING EXPENSES BUDGET was saved or overspent in prior weeks.
+  // Formula: for each week with logged entries, (baseBudget - spent).
+  // Variable/freelance income is intentionally excluded — it affects savings, NOT the living budget.
   const earliestOffset = getEarliestEntryOffset();
   const base = settings.foodBudget;
-  // Use per-week accumulation since extra income varies by week and breaks the N*base closed form
   let carryover = 0;
   for (let w = earliestOffset; w < uptoOffset; w++) {
     const weekEntries = getWeekEntries(w);
-    const extra = getExtraIncomeTotal(w);
-    if (weekEntries.length === 0 && extra === 0) continue; // skip fully unlogged weeks
+    if (weekEntries.length === 0) continue; // skip weeks with no logged spending at all
     const spent = weekEntries.reduce((s,e)=>s+e.amt, 0);
-    carryover += (base + extra) - spent;
+    carryover += base - spent; // purely: did you spend more or less than your living budget?
   }
   return carryover;
 }
@@ -1188,14 +1180,13 @@ function renderWeekLabel() {
 
 // ── Render: summary ──
 function renderSummary() {
-  const spent       = getWeekSpent(currentWeekOffset);
-  const baseBudget  = settings.foodBudget;
-  const carryover   = getCarryoverBalance(currentWeekOffset);
-  const extraIncome = getExtraIncomeTotal(currentWeekOffset);
-  const budget      = baseBudget + carryover + extraIncome; // base + accumulated carryover + this week's extra
-  const remain      = budget - spent;
-  const over        = spent > budget;
-  const pct         = budget > 0 ? Math.min(spent/budget*100, 100) : (spent > 0 ? 100 : 0);
+  const spent      = getWeekSpent(currentWeekOffset);
+  const baseBudget = settings.foodBudget;
+  const carryover  = getCarryoverBalance(currentWeekOffset);
+  const budget     = baseBudget + carryover; // living budget = base ± carryover ONLY, no variable income
+  const remain     = budget - spent;
+  const over       = spent > budget;
+  const pct        = budget > 0 ? Math.min(spent/budget*100, 100) : (spent > 0 ? 100 : 0);
 
   document.getElementById('sum-budget').textContent = fmt(budget);
   document.getElementById('sum-spent').textContent  = fmt(spent);
@@ -1205,21 +1196,17 @@ function renderSummary() {
   document.getElementById('sum-remain-sub').textContent = over ? t('overspentLabel') : t('stillAvailable');
   document.getElementById('bar-pct').textContent = Math.round(pct)+'%';
 
-  // Carryover note
+  // Show carryover note (living budget adjustment from prior weeks only)
   const carryEl = document.getElementById('carryover-note');
   if (carryEl) {
-    const totalAdjust = carryover + extraIncome;
-    if (Math.abs(totalAdjust) < 0.01) {
+    if (Math.abs(carryover) < 0.01) {
       carryEl.textContent = ''; carryEl.style.display = 'none';
     } else {
       carryEl.style.display = 'block';
-      const parts = [];
-      if (Math.abs(carryover) >= 0.01)
-        parts.push(carryover > 0 ? `${t('carryoverPositive')} +${fmt(carryover)}` : `${t('carryoverNegative')} ${fmt(carryover, true)}`);
-      if (extraIncome > 0)
-        parts.push(`${t('extraIncomeAdded')} +${fmt(extraIncome)}`);
-      carryEl.textContent = parts.join('  ·  ');
-      carryEl.className = 'carryover-note ' + (totalAdjust >= 0 ? 'c-green' : 'c-red');
+      carryEl.textContent = carryover > 0
+        ? `${t('carryoverPositive')} +${fmt(carryover)}`
+        : `${t('carryoverNegative')} ${fmt(carryover, true)}`;
+      carryEl.className = 'carryover-note ' + (carryover > 0 ? 'c-green' : 'c-red');
     }
   }
 
@@ -1229,58 +1216,78 @@ function renderSummary() {
   document.getElementById('alert-bar').className = 'alert-bar'+(over?' show':'');
 
   renderCategoryBreakdown();
-  renderExtraIncomeList();
 }
 
-// ── Render: extra income list (week tab) ──
+// ── Render: extra income list (inside bills tab income section) ──
 function renderExtraIncomeList() {
-  const items = getExtraIncomesForWeek(currentWeekOffset);
-  const total = items.reduce((s,e) => s+e.amt, 0);
-  document.getElementById('extra-income-total').textContent = fmt(total);
-
+  const items = getExtraIncomesForWeek(0); // always show current week's variable income in bills tab
   const list = document.getElementById('extra-income-list');
+  if (!list) return;
   if (!items.length) {
-    list.innerHTML = `<div style="font-size:12px;color:var(--muted);padding:6px 0">${t('noExtraIncome')}</div>`;
+    list.innerHTML = `<div class="ei-empty">${t('noExtraIncome')}</div>`;
     return;
   }
   list.innerHTML = items.map(ei => `
     <div class="extra-income-item">
       <input class="ei-desc" type="text" value="${escapeHtml(ei.desc)}" placeholder="${t('extraIncomeDescPlaceholder')}"
              oninput="updateExtraIncome('${ei.id}','desc',this.value)" />
-      <input class="ei-amt" type="number" inputmode="decimal" step="0.01" value="${ei.amt}"
-             onchange="updateExtraIncome('${ei.id}','amt',parseFloat(this.value)||0)" onblur="updateExtraIncome('${ei.id}','amt',parseFloat(this.value)||0)" />
+      <input class="ei-amt" type="number" inputmode="decimal" step="0.01" value="${ei.amt || ''}"
+             placeholder="$0" onchange="updateExtraIncome('${ei.id}','amt',parseFloat(this.value)||0)"
+             onblur="updateExtraIncome('${ei.id}','amt',parseFloat(this.value)||0)" />
       <button class="ei-del" onclick="deleteExtraIncome('${ei.id}')">✕</button>
     </div>`).join('');
 }
 
 function addExtraIncome() {
-  const key = weekKey(currentWeekOffset);
+  const key = weekKey(0); // variable income always for current week when in bills tab
   if (!extraIncomes[key]) extraIncomes[key] = [];
   extraIncomes[key].push({
     id: Date.now().toString(36)+Math.random().toString(36).slice(2,5),
     desc: '', amt: 0
   });
   saveExtraIncomes();
-  renderSummary(); // triggers renderExtraIncomeList + recalculates budget
+  renderBillsTab(); // re-render bills tab (where the list now lives)
+  renderSummary();  // also update the week summary bar
+  // Focus the new description input
+  const descs = document.querySelectorAll('.ei-desc');
+  if (descs.length) descs[descs.length-1].focus();
 }
 
 function deleteExtraIncome(id) {
-  const key = weekKey(currentWeekOffset);
+  const key = weekKey(0);
   if (!extraIncomes[key]) return;
   extraIncomes[key] = extraIncomes[key].filter(e => e.id !== id);
   saveExtraIncomes();
+  renderBillsTab();
   renderSummary();
 }
 
 function updateExtraIncome(id, field, value) {
-  const key = weekKey(currentWeekOffset);
+  const key = weekKey(0);
   if (!extraIncomes[key]) return;
   const item = extraIncomes[key].find(e => e.id === id);
   if (!item) return;
   item[field] = value;
   saveExtraIncomes();
-  if (field === 'amt') renderSummary(); // recalculate budget on amount change
-  // desc: just save, don't re-render (keeps focus)
+  if (field === 'amt') {
+    // Update income total display and summary without full re-render (keeps focus)
+    const income = weeklyIncomeBase() + getExtraIncomeTotal(0);
+    const el = document.getElementById('total-income-display');
+    if (el) el.textContent = fmt(income);
+    const bdIncome = document.getElementById('bd-income');
+    if (bdIncome) bdIncome.textContent = fmt(income);
+    const fixed = weeklyBills();
+    const disp = income - fixed;
+    const savings = disp - settings.foodBudget;
+    const bdDisp = document.getElementById('bd-disposable');
+    if (bdDisp) bdDisp.textContent = fmt(disp);
+    const bdSav = document.getElementById('bd-savings');
+    if (bdSav) { bdSav.textContent = fmt(savings, true); bdSav.className = savings>=0?'c-green':'c-red'; }
+    const bdMon = document.getElementById('bd-monthly-savings');
+    if (bdMon) bdMon.textContent = '≈ '+fmt(Math.max(0,savings)*4.33);
+    renderSummary(); // update week tab summary bar
+  }
+  // desc: just save, focus stays
 }
 
 // ── Render: category breakdown (all categories — informational, shows where the budget went) ──
@@ -1337,9 +1344,8 @@ function renderMonth() {
   for (let i=0;i>=-4;i--) {
     const {monday,sunday} = getWeekDates(i);
     const spent     = getWeekSpent(i);
-    const extra     = getExtraIncomeTotal(i);
     const carryover = getCarryoverBalance(i);
-    const budget    = baseBudget + carryover + extra;
+    const budget    = baseBudget + carryover; // living budget only, no variable income
     const over      = spent > budget;
     const label = i===0 ? t('thisWeek') : `${Math.abs(i)} ${t('weeksAgo')}`;
     const carryNote = Math.abs(carryover) >= 0.01
@@ -1366,7 +1372,8 @@ function renderBillsTab() {
   document.getElementById('inc-subsidy').value     = settings.subsidy;
   document.getElementById('food-budget-inp').value = settings.foodBudget;
 
-  const income  = weeklyIncome();
+  const extraThisWeek = getExtraIncomeTotal(0); // variable income for current week
+  const income  = weeklyIncomeBase() + extraThisWeek;
   const fixed   = weeklyBills();
   const disp    = income - fixed;
   const savings = disp - settings.foodBudget;
@@ -1378,6 +1385,9 @@ function renderBillsTab() {
   document.getElementById('bd-savings').textContent    = fmt(savings, true);
   document.getElementById('bd-savings').className      = savings>=0?'c-green':'c-red';
   document.getElementById('bd-monthly-savings').textContent = '≈ '+fmt(Math.max(0,savings)*4.33);
+
+  // Render the variable income list inside the income section
+  renderExtraIncomeList();
 
   const billsList = document.getElementById('bills-list');
   billsList.innerHTML = settings.bills.map(b => {
