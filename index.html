@@ -5,6 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="color-scheme" content="dark light">
 <title>省錢計劃 · 記帳本</title>
+
+<!-- PWA setup: lets "Add to Home Screen" install this as a real app that can auto-update -->
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#0f1117">
+<!-- iOS-specific PWA tags (iOS does not fully support manifest.json) -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="省錢計劃">
+<link rel="apple-touch-icon" href="./icon-192.png">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
 <style>
@@ -314,7 +324,7 @@
   .bill-card-bottom input:focus, .bill-card-bottom select:focus { border-color: var(--accent); }
   .weekly-cell { font-size: 13px; font-weight: 600; color: var(--yellow); white-space: nowrap; text-align: right; }
 
-  .btn-add-bill {
+  .btn-add-bill, .btn-add-goal {
     background: var(--surface); border: 1px dashed var(--border);
     color: var(--muted); border-radius: 8px; padding: 10px;
     cursor: pointer; font-family: var(--font); font-size: 14px;
@@ -377,6 +387,109 @@
   }
 
   /* ── Custom confirm dialog (replaces native confirm() for consistent theming) ── */
+  /* ── Savings Goals Tab ── */
+  .goals-summary-bar {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px;
+  }
+  .goals-summary-item {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 14px 12px;
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .goals-summary-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; }
+  .goals-summary-value { font-size: 20px; font-weight: 700; }
+
+  .goal-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 14px; margin-bottom: 12px;
+    box-shadow: 0 1px 3px var(--shadow);
+  }
+  .goal-card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .goal-emoji-btn { font-size: 24px; cursor: pointer; flex-shrink: 0; -webkit-tap-highlight-color: transparent; }
+  .goal-name-inp {
+    flex: 1; background: var(--surface); border: 1px solid var(--border);
+    color: var(--text); border-radius: 8px; padding: 8px 10px;
+    font-family: var(--font); font-size: 15px; outline: none; min-width: 0;
+    -webkit-appearance: none;
+  }
+  .goal-name-inp:focus { border-color: var(--accent); }
+  .goal-del-btn {
+    background: none; border: none; color: var(--muted);
+    cursor: pointer; font-size: 20px; flex-shrink: 0; padding: 4px;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .goal-del-btn:active { color: var(--red); }
+
+  .goal-amounts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+  .goal-field { display: flex; flex-direction: column; gap: 4px; }
+  .goal-field-label { font-size: 11px; color: var(--muted); }
+  .goal-field input {
+    background: var(--surface); border: 1px solid var(--border);
+    color: var(--text); border-radius: 8px; padding: 8px 10px;
+    font-family: var(--font); font-size: 15px; outline: none; width: 100%;
+    -webkit-appearance: none; text-align: right;
+  }
+  .goal-field input:focus { border-color: var(--accent); }
+
+  .goal-progress-wrap { margin-bottom: 10px; }
+  .goal-progress-label {
+    display: flex; justify-content: space-between; font-size: 12px;
+    color: var(--muted); margin-bottom: 6px;
+  }
+  .goal-progress-track { height: 10px; background: var(--border); border-radius: 99px; overflow: hidden; }
+  .goal-progress-fill {
+    height: 100%; border-radius: 99px;
+    background: linear-gradient(90deg, var(--green), #10b981);
+    transition: width .4s ease;
+  }
+  .goal-progress-fill.complete { background: linear-gradient(90deg, #f59e0b, var(--green)); }
+
+  .goal-meta { display: flex; justify-content: space-between; align-items: center; font-size: 12px; flex-wrap: wrap; gap: 6px; }
+  .goal-eta { color: var(--accent); font-weight: 600; }
+  .goal-remain { color: var(--muted); }
+
+  .goal-auto-row {
+    display: flex; align-items: center; justify-content: space-between;
+    border-top: 1px solid var(--border); margin-top: 12px; padding-top: 10px;
+    font-size: 13px; color: var(--muted);
+  }
+  .goal-auto-label { display: flex; flex-direction: column; gap: 2px; }
+  .goal-auto-sublabel { font-size: 10px; color: var(--muted); }
+
+  /* Toggle switch */
+  .toggle-wrap { position: relative; width: 44px; height: 26px; flex-shrink: 0; }
+  .toggle-wrap input { opacity: 0; width: 0; height: 0; }
+  .toggle-slider {
+    position: absolute; cursor: pointer; inset: 0;
+    background: var(--border); border-radius: 99px;
+    transition: background .2s;
+  }
+  .toggle-slider::before {
+    content: ''; position: absolute;
+    width: 20px; height: 20px; border-radius: 50%;
+    left: 3px; top: 3px; background: #fff;
+    transition: transform .2s;
+  }
+  .toggle-wrap input:checked + .toggle-slider { background: var(--accent); }
+  .toggle-wrap input:checked + .toggle-slider::before { transform: translateX(18px); }
+
+  /* ── Update banner (PWA: new version available) ── */
+  .update-banner {
+    position: fixed; left: 12px; right: 12px; bottom: 16px;
+    z-index: 500; background: var(--accent); color: #fff;
+    border-radius: 12px; padding: 12px 14px;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    box-shadow: 0 8px 24px var(--shadow);
+    font-size: 13px; animation: slideUp .25s ease;
+  }
+  @keyframes slideUp { from { transform: translateY(20px); opacity:0; } to { transform: translateY(0); opacity:1; } }
+  .update-banner-btn {
+    background: #fff; color: var(--accent); border: none;
+    border-radius: 8px; padding: 7px 14px; font-weight: 700;
+    font-size: 13px; cursor: pointer; flex-shrink: 0;
+    font-family: var(--font); -webkit-tap-highlight-color: transparent;
+  }
+
   .confirm-overlay {
     position: fixed; inset: 0; background: rgba(0,0,0,.5);
     z-index: 400; display: flex; align-items: center; justify-content: center;
@@ -467,6 +580,7 @@
     <button class="tab active" onclick="switchTab('week')" data-i18n="tabWeek">本週記帳</button>
     <button class="tab" onclick="switchTab('month')" data-i18n="tabMonth">月度總覽</button>
     <button class="tab" onclick="switchTab('bills')" data-i18n="tabBills">固定支出設定</button>
+    <button class="tab" onclick="switchTab('goals')" data-i18n="tabGoals">儲蓄目標</button>
   </div>
 
   <!-- ═══ TAB: Week ═══ -->
@@ -549,7 +663,27 @@
       <div class="bd-row"><span data-i18n="monthlySavingsGoal">💰 月存款目標（×4.3）</span><span class="c-green" id="bd-monthly-savings">≈ $619</span></div>
     </div>
 
-  </div>
+  </div><!-- /tab-bills -->
+
+  <!-- ═══ TAB: Savings Goals ═══ -->
+  <div id="tab-goals" style="display:none">
+
+    <div class="goals-summary-bar">
+      <div class="goals-summary-item">
+        <div class="goals-summary-label" data-i18n="totalSaved">累積已存</div>
+        <div class="goals-summary-value c-green" id="goals-total-saved">$0</div>
+      </div>
+      <div class="goals-summary-item">
+        <div class="goals-summary-label" data-i18n="autoWeeklySavings">本週自動存款</div>
+        <div class="goals-summary-value c-accent" id="goals-auto-weekly">$0</div>
+      </div>
+    </div>
+
+    <div id="goals-list"></div>
+
+    <button class="btn-add-goal" onclick="addGoal()" data-i18n="addGoalBtn">＋ 新增儲蓄目標</button>
+
+  </div><!-- /tab-goals -->
 
 </main>
 
@@ -567,7 +701,7 @@ const I18N = {
     categoryBreakdown: '本週各分類花費', weekGrandTotal: '本週總支出（全部類別）',
     weeklyBudgetLabel: '週預算',
     overspendAlert: '⚠️ 本週生活費已超支！請留意所有支出。',
-    tabWeek: '本週記帳', tabMonth: '月度總覽', tabBills: '固定支出設定',
+    tabWeek: '本週記帳', tabMonth: '月度總覽', tabBills: '固定支出設定', tabGoals: '儲蓄目標',
     addExpense: '新增支出',
     descPlaceholder: '說明（如：超市買菜）', amtPlaceholder: '金額 $',
     dateHint: '格式：DD/MM/YYYY（澳洲格式）',
@@ -583,6 +717,17 @@ const I18N = {
     suggestedSavings: '🐷 建議每週存款', monthlySavingsGoal: '💰 月存款目標（×4.3）',
     perWeek: '/週', confirmDeleteBill: '確認刪除此固定支出項目？', confirmDeleteEntry: '確認刪除此筆記錄？',
     cancelBtn: '取消', confirmBtn: '刪除', okBtn: '知道了',
+    newVersionAvailable: '🎉 有新版本可用', updateNowBtn: '立即更新',
+    // Savings Goals
+    totalSaved: '累積已存', autoWeeklySavings: '每週自動存款',
+    addGoalBtn: '＋ 新增儲蓄目標', noGoals: '還沒有設定儲蓄目標 🐷',
+    goalTarget: '目標金額', goalSavedSoFar: '目前已存', goalAutoSaved: '自動累積',
+    stillNeeded: '距離目標還差', goalComplete: '目標達成！',
+    weeksToGo: '週可達成', monthsToGo: '個月可達成', yearsToGo: '年可達成',
+    setWeeklyBudgetFirst: '先設定固定支出以估算速度',
+    autoAccumulateLabel: '自動累積每週存款', autoAccumulateSub: '每週自動加入',
+    goalNamePlaceholder: '目標名稱（如：房子頭期款）',
+    confirmDeleteGoal: '確認刪除此儲蓄目標？',
     fillAmtDate: '請填寫金額與日期', billNamePlaceholder: '支出名稱', amtOnlyPlaceholder: '金額',
     amountTooLarge: '金額似乎太大了，請確認輸入是否正確',
     noDescription: '（無說明）', noData: '暫無資料',
@@ -602,7 +747,7 @@ const I18N = {
     categoryBreakdown: "This Week's Spending by Category", weekGrandTotal: 'Total Spent This Week (All Categories)',
     weeklyBudgetLabel: 'Weekly Budget',
     overspendAlert: "⚠️ You've overspent your weekly budget!",
-    tabWeek: 'This Week', tabMonth: 'Monthly Overview', tabBills: 'Fixed Expenses',
+    tabWeek: 'This Week', tabMonth: 'Monthly Overview', tabBills: 'Fixed Expenses', tabGoals: 'Savings Goals',
     addExpense: 'Add Expense',
     descPlaceholder: 'Description (e.g. Groceries)', amtPlaceholder: 'Amount $',
     dateHint: 'Format: DD/MM/YYYY (Australian)',
@@ -618,6 +763,17 @@ const I18N = {
     suggestedSavings: '🐷 Suggested Weekly Savings', monthlySavingsGoal: '💰 Monthly Savings Goal (×4.3)',
     perWeek: '/wk', confirmDeleteBill: 'Delete this fixed expense item?', confirmDeleteEntry: 'Delete this entry?',
     cancelBtn: 'Cancel', confirmBtn: 'Delete', okBtn: 'OK',
+    newVersionAvailable: '🎉 New version available', updateNowBtn: 'Update Now',
+    // Savings Goals
+    totalSaved: 'Total Saved', autoWeeklySavings: 'Weekly Auto-Save',
+    addGoalBtn: '＋ Add Savings Goal', noGoals: 'No savings goals yet 🐷',
+    goalTarget: 'Target Amount', goalSavedSoFar: 'Saved So Far', goalAutoSaved: 'Auto-accumulated',
+    stillNeeded: 'Still needed', goalComplete: 'Goal reached!',
+    weeksToGo: 'weeks to go', monthsToGo: 'months to go', yearsToGo: 'years to go',
+    setWeeklyBudgetFirst: 'Set fixed expenses to estimate timeline',
+    autoAccumulateLabel: 'Auto-accumulate weekly savings', autoAccumulateSub: 'Adds',
+    goalNamePlaceholder: 'Goal name (e.g. House deposit)',
+    confirmDeleteGoal: 'Delete this savings goal?',
     fillAmtDate: 'Please fill in amount and date', billNamePlaceholder: 'Expense name', amtOnlyPlaceholder: 'Amount',
     amountTooLarge: 'That amount looks too large — please double check',
     noDescription: '(no description)', noData: 'No data yet',
@@ -764,6 +920,14 @@ try {
 let billIdCounter = 0;
 settings.bills.forEach((b) => { if (!b.id) { billIdCounter++; b.id = 'b_'+Date.now()+'_'+billIdCounter; } });
 
+// ── Savings Goals data ──
+let goals = [];
+try {
+  const storedGoals = JSON.parse(safeGet('budget_goals', '[]'));
+  if (Array.isArray(storedGoals)) goals = storedGoals;
+} catch (e) { goals = []; }
+function saveGoals() { safeSet('budget_goals', JSON.stringify(goals)); }
+
 // Restore language & theme preference
 const savedLang  = safeGet('budget_lang', null);
 const savedTheme = safeGet('budget_theme', null);
@@ -900,8 +1064,9 @@ function toggleLang() {
   safeSet('budget_lang', currentLang);
   applyTranslations();
   renderAll();
-  // Refresh bills tab content if visible (it's dynamically generated)
+  // Refresh dynamically-generated tab content if currently visible
   if (document.getElementById('tab-bills').style.display !== 'none') renderBillsTab();
+  if (document.getElementById('tab-goals').style.display !== 'none') renderGoalsTab();
 }
 
 function toggleTheme() {
@@ -1169,12 +1334,197 @@ async function deleteEntry(id) {
 }
 
 // ── Tab switch ──
-const TAB_IDS = ['week','month','bills'];
+// ═══════════════════════════════════════
+//  SAVINGS GOALS
+// ═══════════════════════════════════════
+
+// Weekly savings speed: the base "suggested savings" from fixed expenses breakdown
+// Also accumulates from the actual carryover if the user has been under budget
+function getWeeklySavingsRate() {
+  return Math.max(0, weeklyIncome() - weeklyBills() - settings.foodBudget);
+}
+
+// Total auto-accumulated savings: sum of weekly savings rate × number of weeks
+// since the earliest entry (same logic as carryover, but for savings tracking)
+function getAutoAccumulatedSavings() {
+  const earliestOffset = getEarliestEntryOffset();
+  if (earliestOffset === 0) return 0; // no history yet
+  const weeksWithData = Math.abs(earliestOffset); // how many weeks have passed since we started
+  return Math.max(0, getWeeklySavingsRate() * weeksWithData);
+}
+
+function renderGoalsTab() {
+  const weeklyRate = getWeeklySavingsRate();
+  document.getElementById('goals-auto-weekly').textContent = fmt(weeklyRate);
+
+  // Total saved = sum of manual amounts for goals that don't use auto,
+  // plus auto-accumulated amount split proportionally for goals that do use auto
+  const autoGoals = goals.filter(g => g.autoAccumulate);
+  const autoTotal = getAutoAccumulatedSavings();
+  const manualTotal = goals.filter(g => !g.autoAccumulate).reduce((s,g) => s+g.savedAmt, 0);
+  const autoPerGoal = autoGoals.length > 0 ? autoTotal / autoGoals.length : 0;
+  const grandTotal = manualTotal + (autoGoals.length > 0 ? autoTotal : 0);
+  document.getElementById('goals-total-saved').textContent = fmt(grandTotal);
+
+  const list = document.getElementById('goals-list');
+  if (!goals.length) {
+    list.innerHTML = `<div class="empty-state">${t('noGoals')}</div>`;
+    return;
+  }
+
+  list.innerHTML = goals.map(g => {
+    const saved = g.autoAccumulate ? autoPerGoal + g.savedAmt : g.savedAmt;
+    const pct = g.targetAmt > 0 ? Math.min(saved / g.targetAmt * 100, 100) : 0;
+    const remaining = Math.max(0, g.targetAmt - saved);
+    const complete = saved >= g.targetAmt;
+
+    // ETA calculation
+    let etaText = '';
+    if (complete) {
+      etaText = t('goalComplete');
+    } else if (weeklyRate > 0 && remaining > 0) {
+      const weeksNeeded = Math.ceil(remaining / weeklyRate);
+      if (weeksNeeded <= 8) {
+        etaText = `${weeksNeeded} ${t('weeksToGo')}`;
+      } else {
+        const monthsNeeded = Math.ceil(weeksNeeded / 4.33);
+        if (monthsNeeded <= 24) {
+          etaText = `${monthsNeeded} ${t('monthsToGo')}`;
+        } else {
+          const yearsNeeded = (monthsNeeded / 12).toFixed(1);
+          etaText = `${yearsNeeded} ${t('yearsToGo')}`;
+        }
+      }
+    } else {
+      etaText = t('setWeeklyBudgetFirst');
+    }
+
+    return `
+      <div class="goal-card" id="goal-card-${g.id}">
+        <div class="goal-card-header">
+          <span class="goal-emoji-btn" onclick="pickGoalEmoji('${g.id}',this)">${g.emoji}</span>
+          <input class="goal-name-inp" type="text" value="${escapeHtml(g.name)}"
+                 placeholder="${t('goalNamePlaceholder')}"
+                 oninput="updateGoal('${g.id}','name',this.value)" />
+          <button class="goal-del-btn" onclick="deleteGoal('${g.id}')">🗑</button>
+        </div>
+
+        <div class="goal-amounts">
+          <div class="goal-field">
+            <div class="goal-field-label" data-i18n="goalTarget">${t('goalTarget')}</div>
+            <input type="number" inputmode="decimal" step="100" value="${g.targetAmt}"
+                   placeholder="0" oninput="updateGoal('${g.id}','targetAmt',parseFloat(this.value)||0)" />
+          </div>
+          <div class="goal-field">
+            <div class="goal-field-label">${g.autoAccumulate ? t('goalAutoSaved') : t('goalSavedSoFar')}</div>
+            <input type="number" inputmode="decimal" step="10"
+                   value="${g.autoAccumulate ? saved.toFixed(2) : g.savedAmt}"
+                   ${g.autoAccumulate ? 'readonly style="opacity:.6"' : ''}
+                   oninput="updateGoal('${g.id}','savedAmt',parseFloat(this.value)||0)" />
+          </div>
+        </div>
+
+        <div class="goal-progress-wrap">
+          <div class="goal-progress-label">
+            <span>${fmt(saved)} / ${fmt(g.targetAmt)}</span>
+            <span>${Math.round(pct)}%</span>
+          </div>
+          <div class="goal-progress-track">
+            <div class="goal-progress-fill${complete?' complete':''}" style="width:${pct}%"></div>
+          </div>
+        </div>
+
+        <div class="goal-meta">
+          <span class="goal-remain">${t('stillNeeded')}: ${fmt(remaining)}</span>
+          <span class="goal-eta">${complete ? '🎉 '+t('goalComplete') : '⏱ '+etaText}</span>
+        </div>
+
+        <div class="goal-auto-row">
+          <div class="goal-auto-label">
+            <span>${t('autoAccumulateLabel')}</span>
+            <span class="goal-auto-sublabel">${t('autoAccumulateSub')} ${fmt(weeklyRate)}${t('perWeek')}</span>
+          </div>
+          <label class="toggle-wrap">
+            <input type="checkbox" ${g.autoAccumulate?'checked':''}
+                   onchange="updateGoal('${g.id}','autoAccumulate',this.checked)" />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function addGoal() {
+  goals.push({
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2,5),
+    emoji: '🏠',
+    name: '',
+    targetAmt: 0,
+    savedAmt: 0,
+    autoAccumulate: false,
+  });
+  saveGoals();
+  renderGoalsTab();
+  // Focus the new goal's name input
+  const inputs = document.querySelectorAll('.goal-name-inp');
+  if (inputs.length) inputs[inputs.length-1].focus();
+}
+
+async function deleteGoal(id) {
+  const ok = await confirmDialog(t('confirmDeleteGoal'));
+  if (!ok) return;
+  goals = goals.filter(g => g.id !== id);
+  saveGoals();
+  renderGoalsTab();
+}
+
+function updateGoal(id, field, value) {
+  const g = goals.find(x => x.id === id);
+  if (!g) return;
+  g[field] = value;
+  saveGoals();
+  // Partial re-render: just update summary bar and ETA without full re-render
+  // (avoids losing focus mid-typing on text inputs)
+  if (field === 'targetAmt' || field === 'savedAmt' || field === 'autoAccumulate') {
+    renderGoalsTab(); // these changes affect calculations, full re-render needed
+  }
+  // name/emoji: just save, no re-render (input already shows updated value)
+}
+
+function pickGoalEmoji(goalId, spanEl) {
+  document.querySelectorAll('.emoji-options').forEach(el=>el.remove());
+  const picker = document.createElement('div');
+  picker.className = 'emoji-options';
+  const rect = spanEl.getBoundingClientRect();
+  let top = rect.bottom + 6, left = rect.left;
+  const pw=260, ph=160;
+  if (left+pw > window.innerWidth) left = window.innerWidth-pw-8;
+  if (left < 8) left = 8;
+  if (top+ph > window.innerHeight) top = rect.top-ph-6;
+  picker.style.cssText = `top:${top}px;left:${left}px`;
+  // Extra emoji options appropriate for savings goals
+  const GOAL_EMOJIS = ['🏠','🚗','✈️','👶','📱','💻','🎓','💍','🏖️','🏥','🏋️','🎵','🛋️','🧳','💰','🐣','🌿','🏦','⛵','🎯'];
+  GOAL_EMOJIS.forEach(em => {
+    const s = document.createElement('span'); s.textContent = em;
+    s.onclick = e => {
+      e.stopPropagation();
+      const g = goals.find(x => x.id === goalId);
+      if (g) { g.emoji = em; saveGoals(); spanEl.textContent = em; }
+      picker.remove();
+    };
+    picker.appendChild(s);
+  });
+  document.body.appendChild(picker);
+  setTimeout(()=>document.addEventListener('click',()=>picker.remove(),{once:true}),50);
+}
+
+const TAB_IDS = ['week','month','bills','goals'];
 function switchTab(tab) {
   TAB_IDS.forEach(t => document.getElementById('tab-'+t).style.display = t===tab?'':'none');
   document.querySelectorAll('.tab').forEach((el,i) => el.className='tab'+(TAB_IDS[i]===tab?' active':''));
   if (tab==='month') renderMonth();
   if (tab==='bills') renderBillsTab();
+  if (tab==='goals') renderGoalsTab();
 }
 
 function changeWeek(delta) { currentWeekOffset+=delta; renderAll(); }
@@ -1211,7 +1561,63 @@ window.onload = () => {
   if (!storageAvailable) {
     console.warn('localStorage unavailable (private browsing?) — data will not persist.');
   }
+
+  registerServiceWorker();
 };
+
+// ── PWA: Service Worker registration + update detection ──
+// This is what makes "Add to Home Screen" actually pick up new code after you push
+// changes to GitHub, instead of being stuck on whatever version was cached at install time.
+function registerServiceWorker() {
+  if (!('serviceWorker' in navigator)) return; // unsupported browser — silently skip, app still works
+
+  navigator.serviceWorker.register('./sw.js').then((registration) => {
+    // Check for an updated service worker every time the app is opened/focused
+    registration.addEventListener('updatefound', () => {
+      const newWorker = registration.installing;
+      if (!newWorker) return;
+      newWorker.addEventListener('statechange', () => {
+        // 'installed' + an existing controller means this is an UPDATE, not the first install
+        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+          showUpdateBanner();
+        }
+      });
+    });
+
+    // Also actively check for updates whenever the user re-opens/focuses the app
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') registration.update();
+    });
+  }).catch((err) => {
+    console.warn('Service worker registration failed:', err);
+  });
+
+  // When the new service worker takes over, reload once to get the fresh page content
+  let refreshing = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (refreshing) return;
+    refreshing = true;
+    window.location.reload();
+  });
+}
+
+function showUpdateBanner() {
+  if (document.getElementById('update-banner')) return; // already showing
+  const banner = document.createElement('div');
+  banner.id = 'update-banner';
+  banner.className = 'update-banner';
+  banner.innerHTML = `
+    <span></span>
+    <button class="update-banner-btn"></button>`;
+  banner.querySelector('span').textContent = t('newVersionAvailable');
+  banner.querySelector('.update-banner-btn').textContent = t('updateNowBtn');
+  banner.querySelector('.update-banner-btn').onclick = () => {
+    navigator.serviceWorker.getRegistration().then((reg) => {
+      if (reg && reg.waiting) reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+    });
+  };
+  document.body.appendChild(banner);
+}
 </script>
 </body>
 </html>
