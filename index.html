@@ -146,48 +146,6 @@
 
   /* ── Progress ── */
   /* ── Extra Income (week tab) ── */
-  /* ── Variable income rows (inside income-summary card in bills tab) ── */
-  .income-section-label {
-    font-size: 11px; font-weight: 700; color: var(--muted);
-    text-transform: uppercase; letter-spacing: .5px;
-    margin-bottom: 6px; margin-top: 4px;
-  }
-  .btn-add-variable-income {
-    background: var(--surface); border: 1px dashed var(--border);
-    color: var(--accent); border-radius: 8px; padding: 7px 12px;
-    cursor: pointer; font-family: var(--font); font-size: 13px; font-weight: 600;
-    width: 100%; margin: 4px 0 10px 0; -webkit-tap-highlight-color: transparent;
-  }
-  .extra-income-item {
-    display: flex; align-items: center; gap: 8px; padding: 5px 0;
-    border-bottom: 1px solid var(--border);
-  }
-  .extra-income-item:last-of-type { border-bottom: none; }
-  .ei-desc {
-    flex: 1; background: var(--surface); border: 1px solid var(--border);
-    color: var(--text); border-radius: 6px; padding: 7px 10px;
-    font-family: var(--font); font-size: 14px; outline: none; min-width: 0;
-    -webkit-appearance: none;
-  }
-  .ei-desc:focus { border-color: var(--accent); }
-  .ei-amt {
-    width: 90px; background: var(--surface); border: 1px solid var(--border);
-    color: var(--green); font-weight: 600;
-    border-radius: 6px; padding: 7px 8px; text-align: right;
-    font-family: var(--font); font-size: 14px; outline: none; flex-shrink: 0;
-    -webkit-appearance: none;
-  }
-  .ei-amt:focus { border-color: var(--green); }
-  .ei-del {
-    background: none; border: none; color: var(--muted);
-    cursor: pointer; font-size: 16px; padding: 4px; flex-shrink: 0;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .ei-del:active { color: var(--red); }
-  .ei-empty {
-    font-size: 12px; color: var(--muted); padding: 4px 0 8px 0;
-  }
-
   .carryover-note {
     font-size: 12px; text-align: center; padding: 6px 10px;
     margin-bottom: 12px; font-weight: 600;
@@ -803,12 +761,6 @@ const I18N = {
     spentThisWeek: '本週已花', foodTotal: '全部支出合計',
     remainOver: '剩餘/超支', stillAvailable: '還可以花', overspentLabel: '⚠️ 已超支',
     carryoverPositive: '💰 已加入上週結餘', carryoverNegative: '⚠️ 已扣除上週超支',
-    extraIncomeAdded: '💼 已加入本週浮動收入',
-    extraIncomeTitle: '本週浮動收入', extraIncomeTotal: '本週浮動收入合計',
-    noExtraIncome: '本週尚未記錄浮動收入',
-    extraIncomeDescPlaceholder: '收入來源名稱（如：按摩兼職、網站接案）',
-    fixedIncomeLabel: '📌 固定收入', variableIncomeLabel: '📈 本週浮動收入',
-    addVariableIncomeBtn: '＋ 新增收入項目',
     budgetUsage: '本週花費使用率',
     categoryBreakdown: '本週各分類花費', weekGrandTotal: '本週總支出（全部類別）',
     spendingLimitLabel: '本週可花費上限', savingsTargetLabel: '🐷 每週儲蓄目標',
@@ -865,12 +817,6 @@ const I18N = {
     spentThisWeek: 'Spent This Week', foodTotal: 'all spending',
     remainOver: 'Remain/Over', stillAvailable: 'still available', overspentLabel: '⚠️ Overspent',
     carryoverPositive: '💰 Includes carryover from last week', carryoverNegative: '⚠️ Deducted overspend from last week',
-    extraIncomeAdded: '💼 Includes variable income this week',
-    extraIncomeTitle: 'Variable Income This Week', extraIncomeTotal: 'Total Variable Income',
-    noExtraIncome: 'No variable income recorded this week',
-    extraIncomeDescPlaceholder: 'Income source (e.g. Massage shift, Freelance project)',
-    fixedIncomeLabel: '📌 Fixed Income', variableIncomeLabel: '📈 Variable Income This Week',
-    addVariableIncomeBtn: '＋ Add Income',
     budgetUsage: 'Weekly Spending Usage',
     categoryBreakdown: "This Week's Spending by Category", weekGrandTotal: 'Total Spent This Week (All Categories)',
     spendingLimitLabel: 'Spending Limit This Week', savingsTargetLabel: '🐷 Weekly Savings Target',
@@ -1692,21 +1638,23 @@ function getWeeklySavingsRate() {
 // Total accumulated savings = (savingsTarget × weeks with data) + all variable income ever recorded
 // Variable income is assumed fully saved (user already decided how much to spend separately)
 function getAutoAccumulatedSavings() {
-  const earliestOffset = getEarliestEntryOffset();
   if (entries.length === 0 && Object.keys(varIncomes).length === 0) return 0;
 
-  // Count weeks with any logged data (entries OR variable income)
+  // Find the earliest Monday that has any data (spending entries OR var income)
+  // by checking up to 104 weeks back (2 years max)
   let weeksWithData = 0;
-  for (let w = earliestOffset; w <= 0; w++) {
-    const hasEntries = getWeekEntries(w).length > 0;
+  for (let w = -104; w <= 0; w++) {
+    const hasEntries   = getWeekEntries(w).length > 0;
     const hasVarIncome = getVarIncomesForWeek(w).length > 0;
     if (hasEntries || hasVarIncome) weeksWithData++;
   }
 
-  // Fixed savings: savingsTarget × weeks used
+  if (weeksWithData === 0) return 0;
+
+  // Fixed savings: savingsTarget × every week that had logged data
   const fixedSavings = getWeeklySavingsRate() * weeksWithData;
 
-  // Variable income: sum ALL recorded variable income across ALL weeks
+  // Variable income: sum ALL recorded var income across ALL weeks (all treated as saved)
   const allVarIncome = Object.values(varIncomes)
     .flat()
     .reduce((s, e) => s + (e.amt || 0), 0);
@@ -1733,9 +1681,9 @@ function renderGoalsTab() {
   const weeklyRate = getWeeklySavingsRate(); // for ETA calculation
 
   list.innerHTML = goals.map(g => {
-    // If auto-accumulate is on, the goal tracks the full accumulated savings pool
-    // (savingsTarget × weeks + all var income). Each auto goal independently shows this total.
-    const saved = g.autoAccumulate ? autoTotal + g.savedAmt : g.savedAmt;
+    // auto-accumulate: goal tracks the full accumulated savings pool
+    // manual: goal tracks only what was manually entered as savedAmt
+    const saved = g.autoAccumulate ? autoTotal : g.savedAmt;
     const pct = g.targetAmt > 0 ? Math.min(saved / g.targetAmt * 100, 100) : 0;
     const remaining = Math.max(0, g.targetAmt - saved);
     const complete = saved >= g.targetAmt;
