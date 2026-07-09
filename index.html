@@ -388,6 +388,60 @@
   }
 
   /* ── Custom confirm dialog (replaces native confirm() for consistent theming) ── */
+  /* ── Net Worth Tab ── */
+  .nw-summary-bar {
+    display: grid; grid-template-columns: repeat(3,1fr);
+    gap: 8px; margin-bottom: 12px;
+  }
+  .nw-summary-item {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 12px 10px;
+    display: flex; flex-direction: column; gap: 4px;
+    box-shadow: 0 1px 3px var(--shadow);
+  }
+  .nw-assets   { border-top: 3px solid var(--green); }
+  .nw-liabilities { border-top: 3px solid var(--red); }
+  .nw-networth { border-top: 3px solid var(--accent); }
+  .nw-summary-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; }
+  .nw-summary-value { font-size: 17px; font-weight: 700; word-break: break-all; }
+  .nw-note {
+    font-size: 12px; color: var(--muted); text-align: center;
+    margin-bottom: 14px;
+  }
+  .nw-updated {
+    font-size: 11px; color: var(--muted); text-align: center;
+    margin-top: 8px; padding-bottom: 4px;
+  }
+
+  /* Net worth card — same as bill-card but with plain amount input, no frequency */
+  .nw-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 10px 12px; margin-bottom: 8px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .nw-card-emoji { font-size: 22px; cursor: pointer; flex-shrink: 0; -webkit-tap-highlight-color: transparent; }
+  .nw-card-name {
+    flex: 1; background: var(--surface); border: 1px solid var(--border);
+    color: var(--text); border-radius: 6px; padding: 7px 10px;
+    font-family: var(--font); font-size: 14px; outline: none; min-width: 0;
+    -webkit-appearance: none;
+  }
+  .nw-card-name:focus { border-color: var(--accent); }
+  .nw-card-amt {
+    width: 100px; background: var(--surface); border: 1px solid var(--border);
+    color: var(--text); font-weight: 600; text-align: right;
+    border-radius: 6px; padding: 7px 8px;
+    font-family: var(--font); font-size: 14px; outline: none; flex-shrink: 0;
+    -webkit-appearance: none;
+  }
+  .nw-card-amt:focus { border-color: var(--accent); }
+  .nw-card-del {
+    background: none; border: none; color: var(--muted);
+    cursor: pointer; font-size: 18px; padding: 4px; flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .nw-card-del:active { color: var(--red); }
+
   /* ── Savings Goals Tab ── */
   .goals-summary-bar {
     display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px;
@@ -475,6 +529,7 @@
   .toggle-wrap input:checked + .toggle-slider::before { transform: translateX(18px); }
 
   /* ── Variable income (week tab, display-only) ── */
+  /* ── Government subsidy input (week tab, flows into spending limit) ── */
   .var-income-box {
     background: var(--card); border: 1px solid var(--border);
     border-radius: 12px; padding: 14px; margin-top: 16px;
@@ -489,38 +544,47 @@
     border-radius: 8px; padding: 5px 10px; font-size: 16px; font-weight: 700;
     cursor: pointer; flex-shrink: 0; -webkit-tap-highlight-color: transparent;
   }
-  .var-income-item {
-    display: flex; align-items: center; gap: 8px; padding: 5px 0;
-    border-bottom: 1px solid var(--border);
+  /* Extra deposit item: two rows — amount row + toggles row */
+  .ed-item {
+    padding: 10px 0; border-bottom: 1px solid var(--border);
   }
-  .var-income-item:last-of-type { border-bottom: none; }
-  .vi-desc {
+  .ed-item:last-of-type { border-bottom: none; }
+  .ed-empty { font-size: 12px; color: var(--muted); padding: 4px 0; }
+  .ed-row1 { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .ed-desc {
     flex: 1; background: var(--surface); border: 1px solid var(--border);
     color: var(--text); border-radius: 6px; padding: 7px 10px;
     font-family: var(--font); font-size: 14px; outline: none; min-width: 0;
     -webkit-appearance: none;
   }
-  .vi-desc:focus { border-color: var(--accent); }
-  .vi-amt {
+  .ed-desc:focus { border-color: var(--accent); }
+  .ed-amt {
     width: 90px; background: var(--surface); border: 1px solid var(--border);
     color: var(--green); font-weight: 600;
     border-radius: 6px; padding: 7px 8px; text-align: right;
     font-family: var(--font); font-size: 14px; outline: none; flex-shrink: 0;
     -webkit-appearance: none;
   }
-  .vi-amt:focus { border-color: var(--green); }
-  .vi-del {
+  .ed-amt:focus { border-color: var(--green); }
+  .ed-del {
     background: none; border: none; color: var(--muted);
     cursor: pointer; font-size: 16px; padding: 4px; flex-shrink: 0;
     -webkit-tap-highlight-color: transparent;
   }
-  .vi-del:active { color: var(--red); }
-  .var-income-total-row {
-    display: flex; justify-content: space-between; align-items: center;
-    font-size: 13px; font-weight: 600; padding-top: 8px;
-    border-top: 1px solid var(--border); margin-top: 6px;
+  .ed-del:active { color: var(--red); }
+  .ed-row2 { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .ed-toggle {
+    display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted);
+    cursor: pointer; -webkit-tap-highlight-color: transparent;
   }
-  .var-income-total-row span:first-child { color: var(--muted); }
+  .ed-toggle input { width: 16px; height: 16px; accent-color: var(--accent); }
+  .ed-flow { display: flex; gap: 0; border: 1px solid var(--border); border-radius: 7px; overflow: hidden; }
+  .ed-flow-btn {
+    background: var(--surface); border: none; color: var(--muted);
+    padding: 6px 10px; font-size: 12px; font-family: var(--font); cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .ed-flow-btn.active { background: var(--accent); color: #fff; font-weight: 600; }
 
   /* ── Update banner (PWA) ── */
   .update-banner {
@@ -628,8 +692,9 @@
   <div class="tabs">
     <button class="tab active" onclick="switchTab('week')" data-i18n="tabWeek">本週記帳</button>
     <button class="tab" onclick="switchTab('month')" data-i18n="tabMonth">月度總覽</button>
-    <button class="tab" onclick="switchTab('bills')" data-i18n="tabBills">固定支出設定</button>
+    <button class="tab" onclick="switchTab('bills')" data-i18n="tabBills">收入與支出</button>
     <button class="tab" onclick="switchTab('goals')" data-i18n="tabGoals">儲蓄目標</button>
+    <button class="tab" onclick="switchTab('networth')" data-i18n="tabNetworth">資產負債</button>
   </div>
 
   <!-- ═══ TAB: Week ═══ -->
@@ -658,22 +723,6 @@
     <div class="entry-list" id="entry-list">
       <div class="empty-state" data-i18n="noEntries">本週還沒有記帳記錄 🌟</div>
     </div>
-
-    <!-- Variable income this week — display only, does NOT affect spending limit or carryover -->
-    <div class="var-income-box">
-      <div class="var-income-header">
-        <div>
-          <div class="section-title" style="margin-bottom:2px" data-i18n="varIncomeTitle">本週浮動收入（記錄用）</div>
-          <div class="var-income-note" data-i18n="varIncomeNote">不影響可花費上限，由你自行決定如何分配</div>
-        </div>
-        <button class="var-income-add-btn" onclick="addVarIncome()">＋</button>
-      </div>
-      <div id="var-income-list"></div>
-      <div class="var-income-total-row" id="var-income-total-row" style="display:none">
-        <span data-i18n="varIncomeTotal">本週浮動收入合計</span>
-        <span class="c-green" id="var-income-total">$0.00</span>
-      </div>
-    </div>
   </div>
 
   <!-- ═══ TAB: Month ═══ -->
@@ -698,6 +747,16 @@
       </div>
     </div>
 
+    <!-- Extra deposits: subsidies, freelance, any extra money in. Each has spread + flow toggles. -->
+    <div class="bills-section">
+      <div class="bills-section-header">
+        <div class="bills-section-title" data-i18n="extraDepositTitle">💵 本週額外進帳</div>
+        <button class="var-income-add-btn" onclick="addExtraDeposit()">＋</button>
+      </div>
+      <div class="var-income-note" style="margin-bottom:10px" data-i18n="extraDepositNote">入帳後填實際金額，可選擇平攤兩週、以及進可花費或進儲蓄</div>
+      <div id="extra-deposit-list"></div>
+    </div>
+
     <div class="bills-section">
       <div class="bills-section-header">
         <div class="bills-section-title" data-i18n="fixedExpenseItems">🏷️ 固定支出項目</div>
@@ -710,6 +769,7 @@
     <div class="budget-breakdown">
       <div class="section-title" style="margin-bottom:10px" data-i18n="budgetCalc">📊 預算試算</div>
       <div class="bd-row"><span data-i18n="weeklyIncomeRow">週收入</span><span class="c-green" id="bd-income">$1,250.00</span></div>
+      <div class="bd-row"><span data-i18n="spendableExtraLabel">本週額外進帳（進可花費）</span><span class="c-green" id="bd-subsidy">$0.00</span></div>
       <div class="bd-row"><span data-i18n="fixedExpenseWeekly">固定支出（週均）</span><span class="c-red" id="bd-fixed">-$755.98</span></div>
       <hr class="bd-divider">
       <div class="bd-row highlight"><span data-i18n="disposableBalance">可支配餘額</span><span class="c-accent" id="bd-disposable">$494.02</span></div>
@@ -748,6 +808,52 @@
 
   </div><!-- /tab-goals -->
 
+  <!-- ═══ TAB: Net Worth (Assets & Liabilities) ═══ -->
+  <div id="tab-networth" style="display:none">
+
+    <!-- Net worth summary bar -->
+    <div class="nw-summary-bar">
+      <div class="nw-summary-item nw-assets">
+        <div class="nw-summary-label" data-i18n="totalAssets">總資產</div>
+        <div class="nw-summary-value c-green" id="nw-total-assets">$0</div>
+      </div>
+      <div class="nw-summary-item nw-liabilities">
+        <div class="nw-summary-label" data-i18n="totalLiabilities">總負債</div>
+        <div class="nw-summary-value c-red" id="nw-total-liabilities">$0</div>
+      </div>
+      <div class="nw-summary-item nw-networth">
+        <div class="nw-summary-label" data-i18n="netWorthLabel">實際身家</div>
+        <div class="nw-summary-value" id="nw-networth">$0</div>
+      </div>
+    </div>
+
+    <div class="nw-note" data-i18n="nwNote">資產 − 負債 = 實際身家（淨值）</div>
+
+    <!-- Assets -->
+    <div class="bills-section">
+      <div class="bills-section-header">
+        <div class="bills-section-title" data-i18n="assetsTitle">💚 資產</div>
+        <span style="font-size:11px;color:var(--muted)" data-i18n="tapToEdit">點擊可編輯</span>
+      </div>
+      <div id="assets-list"></div>
+      <button class="btn-add-bill" onclick="addAsset()" data-i18n="addAssetBtn">＋ 新增資產</button>
+    </div>
+
+    <!-- Liabilities -->
+    <div class="bills-section">
+      <div class="bills-section-header">
+        <div class="bills-section-title" data-i18n="liabilitiesTitle">❤️ 負債</div>
+        <span style="font-size:11px;color:var(--muted)" data-i18n="tapToEdit">點擊可編輯</span>
+      </div>
+      <div id="liabilities-list"></div>
+      <button class="btn-add-bill" onclick="addLiability()" data-i18n="addLiabilityBtn">＋ 新增負債</button>
+    </div>
+
+    <!-- Last updated -->
+    <div class="nw-updated" id="nw-updated"></div>
+
+  </div><!-- /tab-networth -->
+
 </main>
 
 <script>
@@ -766,25 +872,26 @@ const I18N = {
     spendingLimitLabel: '本週可花費上限', savingsTargetLabel: '🐷 每週儲蓄目標',
     weeklyBudgetLabel: '可花費上限',
     overspendAlert: '⚠️ 本週花費已超支！請留意支出。',
-    tabWeek: '本週記帳', tabMonth: '月度總覽', tabBills: '固定支出設定', tabGoals: '儲蓄目標',
+    tabWeek: '本週記帳', tabMonth: '月度總覽', tabBills: '收入與支出', tabGoals: '儲蓄目標',
     addExpense: '新增支出',
     descPlaceholder: '說明（如：超市買菜）', amtPlaceholder: '金額 $',
     dateHint: '格式：DD/MM/YYYY（澳洲格式）',
     catFood: '🛒 伙食', catTransport: '🚗 交通', catKids: '🧸 小孩', catHealth: '💊 醫療', catMisc: '📦 其他',
     addEntryBtn: '＋ 記帳',
     weekDetail: '本週明細', noEntries: '本週還沒有記帳記錄 🌟',
-    varIncomeTitle: '本週浮動收入（記錄用）',
-    varIncomeNote: '不影響可花費上限，由你自行決定如何分配',
-    varIncomeTotal: '本週浮動收入合計',
-    varIncomeDescPlaceholder: '來源說明（如：按摩接案、額外班次）',
+    extraDepositTitle: '💵 本週額外進帳',
+    extraDepositNote: '入帳後填實際金額，可選平攤兩週、以及進可花費或進儲蓄',
+    extraDepositDescPlaceholder: '來源說明（如：政府補助、按摩接案）',
+    noExtraDeposit: '本週尚未有額外進帳',
+    spreadLabel: '平攤兩週',
+    flowSpend: '進可花費', flowSave: '進儲蓄',
     monthlyOverview: '月度週別總覽',
-    weeklyIncome: '💰 每週收入', salaryLabel: '💼 每週薪資', subsidyLabel: '🏛️ 政府補助（每兩週）',
     weeklyIncomeTotal: '週收入合計',
     fixedExpenseItems: '🏷️ 固定支出項目', tapToEdit: '點擊可編輯', addBillBtn: '＋ 新增固定支出',
     incomeSourcesTitle: '💰 收入來源', addIncomeSourceBtn: '＋ 新增收入來源',
     incomeSourceNamePlaceholder: '收入名稱（如：按摩薪資、CCS補助）',
     confirmDeleteIncome: '確認刪除此收入來源？',
-    budgetCalc: '📊 預算試算', weeklyIncomeRow: '週收入', fixedExpenseWeekly: '固定支出（週均）',
+    budgetCalc: '📊 預算試算', weeklyIncomeRow: '週收入', spendableExtraLabel: '本週額外進帳（進可花費）', fixedExpenseWeekly: '固定支出（週均）',
     disposableBalance: '可支配餘額', foodBudgetWeekly: '🐷 每週儲蓄目標',
     suggestedSavings: '🐷 建議每週存款', monthlySavingsGoal: '💰 月存款目標（×4.3）',
     perWeek: '/週', confirmDeleteBill: '確認刪除此固定支出項目？', confirmDeleteEntry: '確認刪除此筆記錄？',
@@ -801,6 +908,18 @@ const I18N = {
     autoAccumulateLabel: '自動累積每週存款', autoAccumulateSub: '每週自動加入',
     goalNamePlaceholder: '目標名稱（如：房子頭期款）',
     confirmDeleteGoal: '確認刪除此儲蓄目標？',
+    // Net worth (Assets & Liabilities)
+    tabNetworth: '資產負債',
+    totalAssets: '總資產', totalLiabilities: '總負債', netWorthLabel: '實際身家',
+    nwNote: '資產 − 負債 = 實際身家（淨值）',
+    assetsTitle: '💚 資產', liabilitiesTitle: '❤️ 負債',
+    addAssetBtn: '＋ 新增資產', addLiabilityBtn: '＋ 新增負債',
+    assetNamePlaceholder: '資產名稱（如：儲蓄帳戶、房產）',
+    liabilityNamePlaceholder: '負債名稱（如：信用卡、房貸）',
+    confirmDeleteAsset: '確認刪除此資產項目？',
+    confirmDeleteLiability: '確認刪除此負債項目？',
+    noAssets: '尚未新增資產項目', noLiabilities: '尚未新增負債項目',
+    nwLastUpdated: '最後更新',
     fillAmtDate: '請填寫金額與日期', billNamePlaceholder: '支出名稱', amtOnlyPlaceholder: '金額',
     amountTooLarge: '金額似乎太大了，請確認輸入是否正確',
     noDescription: '（無說明）', noData: '暫無資料',
@@ -822,25 +941,26 @@ const I18N = {
     spendingLimitLabel: 'Spending Limit This Week', savingsTargetLabel: '🐷 Weekly Savings Target',
     weeklyBudgetLabel: 'Spending Limit',
     overspendAlert: "⚠️ You've exceeded your spending limit this week!",
-    tabWeek: 'This Week', tabMonth: 'Monthly Overview', tabBills: 'Fixed Expenses', tabGoals: 'Savings Goals',
+    tabWeek: 'This Week', tabMonth: 'Monthly Overview', tabBills: 'Income & Expenses', tabGoals: 'Savings Goals',
     addExpense: 'Add Expense',
     descPlaceholder: 'Description (e.g. Groceries)', amtPlaceholder: 'Amount $',
     dateHint: 'Format: DD/MM/YYYY (Australian)',
     catFood: '🛒 Food', catTransport: '🚗 Transport', catKids: '🧸 Kids', catHealth: '💊 Health', catMisc: '📦 Other',
     addEntryBtn: '＋ Add',
     weekDetail: 'This Week\'s Details', noEntries: 'No entries yet this week 🌟',
-    varIncomeTitle: 'Variable Income This Week (info only)',
-    varIncomeNote: 'Does not affect your spending limit — you decide how to allocate it',
-    varIncomeTotal: 'Total Variable Income This Week',
-    varIncomeDescPlaceholder: 'Source (e.g. Massage job, Extra shift)',
+    extraDepositTitle: '💵 Extra Money In This Week',
+    extraDepositNote: 'Enter actual amount received. Choose to spread over 2 weeks, and whether it goes to spending or savings.',
+    extraDepositDescPlaceholder: 'Source (e.g. Govt subsidy, Freelance)',
+    noExtraDeposit: 'No extra money recorded this week',
+    spreadLabel: 'Spread over 2 weeks',
+    flowSpend: 'To spending', flowSave: 'To savings',
     monthlyOverview: 'Weekly Overview (Last 5 Weeks)',
-    weeklyIncome: '💰 Weekly Income', salaryLabel: '💼 Weekly Salary', subsidyLabel: '🏛️ Govt Subsidy (fortnightly)',
     weeklyIncomeTotal: 'Total Weekly Income',
     fixedExpenseItems: '🏷️ Fixed Expense Items', tapToEdit: 'Tap to edit', addBillBtn: '＋ Add Fixed Expense',
     incomeSourcesTitle: '💰 Income Sources', addIncomeSourceBtn: '＋ Add Income Source',
     incomeSourceNamePlaceholder: 'Income name (e.g. Massage salary, CCS subsidy)',
     confirmDeleteIncome: 'Delete this income source?',
-    budgetCalc: '📊 Budget Breakdown', weeklyIncomeRow: 'Weekly Income', fixedExpenseWeekly: 'Fixed Expenses (weekly avg)',
+    budgetCalc: '📊 Budget Breakdown', weeklyIncomeRow: 'Weekly Income', spendableExtraLabel: 'Extra In (to spending)', fixedExpenseWeekly: 'Fixed Expenses (weekly avg)',
     disposableBalance: 'Disposable Balance', foodBudgetWeekly: '🐷 Weekly Savings Target',
     suggestedSavings: '🐷 Suggested Weekly Savings', monthlySavingsGoal: '💰 Monthly Savings Goal (×4.3)',
     perWeek: '/wk', confirmDeleteBill: 'Delete this fixed expense item?', confirmDeleteEntry: 'Delete this entry?',
@@ -857,6 +977,18 @@ const I18N = {
     autoAccumulateLabel: 'Auto-accumulate weekly savings', autoAccumulateSub: 'Adds',
     goalNamePlaceholder: 'Goal name (e.g. House deposit)',
     confirmDeleteGoal: 'Delete this savings goal?',
+    // Net worth (Assets & Liabilities)
+    tabNetworth: 'Net Worth',
+    totalAssets: 'Total Assets', totalLiabilities: 'Total Liabilities', netWorthLabel: 'Net Worth',
+    nwNote: 'Assets − Liabilities = Net Worth',
+    assetsTitle: '💚 Assets', liabilitiesTitle: '❤️ Liabilities',
+    addAssetBtn: '＋ Add Asset', addLiabilityBtn: '＋ Add Liability',
+    assetNamePlaceholder: 'Asset name (e.g. Savings account, Property)',
+    liabilityNamePlaceholder: 'Liability name (e.g. Credit card, Mortgage)',
+    confirmDeleteAsset: 'Delete this asset?',
+    confirmDeleteLiability: 'Delete this liability?',
+    noAssets: 'No assets added yet', noLiabilities: 'No liabilities added yet',
+    nwLastUpdated: 'Last updated',
     fillAmtDate: 'Please fill in amount and date', billNamePlaceholder: 'Expense name', amtOnlyPlaceholder: 'Amount',
     amountTooLarge: 'That amount looks too large — please double check',
     noDescription: '(no description)', noData: 'No data yet',
@@ -983,8 +1115,9 @@ const DEFAULT_BILLS = [
 ];
 
 const DEFAULT_INCOME_SOURCES = [
-  { id:'i1', emoji:'💼', name:'薪資',         amt:1000, freq:'weekly'      },
-  { id:'i2', emoji:'🏛️', name:'政府補助',     amt:500,  freq:'fortnightly' },
+  { id:'i1', emoji:'💼', name:'薪資', amt:1000, freq:'weekly' },
+  // NOTE: 政府補助 is no longer a fixed income source — it's entered per-week
+  // when the actual payment lands (see subsidies store below), since the amount varies.
 ];
 
 const DEFAULT_SETTINGS = { savingsTarget:150, bills:DEFAULT_BILLS, incomeSources:DEFAULT_INCOME_SOURCES };
@@ -1005,9 +1138,12 @@ try {
     // Migrate legacy salary/subsidy to incomeSources if upgrading from old version
     if (!Array.isArray(settings.incomeSources)) {
       settings.incomeSources = JSON.parse(JSON.stringify(DEFAULT_INCOME_SOURCES));
-      if (stored.salary)  settings.incomeSources[0].amt = stored.salary;
-      if (stored.subsidy) settings.incomeSources[1].amt = stored.subsidy;
+      if (stored.salary) settings.incomeSources[0].amt = stored.salary;
     }
+    // Migrate: remove the old default fixed "政府補助" card (untouched default only)
+    // since subsidy is now entered per-week with actual amounts
+    settings.incomeSources = settings.incomeSources.filter(s =>
+      !(s.id === 'i2' && s.name === '政府補助' && s.freq === 'fortnightly'));
     // Migrate old foodBudget → savingsTarget
     if (settings.savingsTarget === undefined && stored.foodBudget !== undefined) {
       settings.savingsTarget = stored.foodBudget;
@@ -1015,6 +1151,70 @@ try {
     if (settings.savingsTarget === undefined) settings.savingsTarget = 150;
   }
 } catch (e) { /* keep defaults */ }
+
+// ── Government subsidy (per-week, ACTUAL amounts entered when payment lands) ──
+// Unlike stable income sources, the subsidy amount varies each fortnight,
+// so it's recorded per-week with real received amounts. It flows into that
+// week's disposable balance → spending limit (NOT into savings like var income).
+// (old subsidy store removed — unified into extraDeposits above)
+
+// ── Extra deposits (unified system for subsidies + variable income) ──
+// Stored per-week: { weekKey: [ {id, desc, amt, spread, toSavings}, ... ] }
+//   spread=true   → amount is halved across this week + next week (for fortnightly payments)
+//   toSavings=true → flows into savings accumulation (does NOT raise spending limit)
+//   toSavings=false→ flows into disposable income (RAISES this week's spending limit)
+let extraDeposits = {};
+try {
+  const stored = JSON.parse(safeGet('budget_extra_deposits', 'null'));
+  if (stored && typeof stored === 'object') extraDeposits = stored;
+  else {
+    // Migrate from old subsidies + varIncomes stores
+    const oldSub = JSON.parse(safeGet('budget_subsidies', '{}')) || {};
+    const oldVar = JSON.parse(safeGet('budget_var_incomes', '{}')) || {};
+    for (const wk in oldSub) {
+      if (oldSub[wk] > 0) {
+        if (!extraDeposits[wk]) extraDeposits[wk] = [];
+        extraDeposits[wk].push({ id:'m'+Math.random().toString(36).slice(2,7), desc:'政府補助', amt:oldSub[wk], spread:true, toSavings:false });
+      }
+    }
+    for (const wk in oldVar) {
+      (oldVar[wk]||[]).forEach(v => {
+        if (!extraDeposits[wk]) extraDeposits[wk] = [];
+        extraDeposits[wk].push({ id:'m'+Math.random().toString(36).slice(2,7), desc:v.desc||'', amt:v.amt||0, spread:false, toSavings:true });
+      });
+    }
+  }
+} catch (e) { extraDeposits = {}; }
+function saveExtraDeposits() { safeSet('budget_extra_deposits', JSON.stringify(extraDeposits)); }
+function weekKey(offset) {
+  const { monday } = getWeekDates(offset);
+  return monday.toISOString().slice(0,10);
+}
+function getExtraDepositsForWeek(offset) { return extraDeposits[weekKey(offset)] || []; }
+
+// Amount from extra deposits that flows into THIS week's SPENDING LIMIT.
+// Includes: (a) this week's non-savings deposits, and (b) HALF of last week's spread non-savings deposits.
+function getSpendableExtraForWeek(offset) {
+  let total = 0;
+  // This week's deposits
+  getExtraDepositsForWeek(offset).forEach(d => {
+    if (d.toSavings) return;
+    total += d.spread ? d.amt/2 : d.amt;
+  });
+  // Last week's spread deposits contribute their second half to this week
+  getExtraDepositsForWeek(offset - 1).forEach(d => {
+    if (d.toSavings) return;
+    if (d.spread) total += d.amt/2;
+  });
+  return total;
+}
+
+// Total extra deposits flagged as savings, across ALL weeks (for savings accumulation)
+function getAllSavingsDeposits() {
+  return Object.values(extraDeposits).flat()
+    .filter(d => d.toSavings)
+    .reduce((s,d) => s + (d.amt||0), 0);
+}
 
 let billIdCounter = 0;
 settings.bills.forEach((b) => { if (!b.id) { billIdCounter++; b.id = 'b_'+Date.now()+'_'+billIdCounter; } });
@@ -1028,20 +1228,43 @@ try {
 } catch (e) { goals = []; }
 function saveGoals() { safeSet('budget_goals', JSON.stringify(goals)); }
 
-// ── Variable income (per-week, display-only — does NOT affect spending limit or carryover) ──
-// User decides themselves what to do with it: spend more, save more, or leave it.
-let varIncomes = {};
+// ── Net Worth: Assets & Liabilities ──
+const DEFAULT_ASSETS = [
+  { id:'a1', emoji:'💰', name:'儲蓄帳戶', amt:0 },
+  { id:'a2', emoji:'💵', name:'現金',     amt:0 },
+];
+const DEFAULT_LIABILITIES = [
+  { id:'l1', emoji:'💳', name:'信用卡餘額', amt:0 },
+];
+
+let assets = [];
+let liabilities = [];
+let networthUpdatedAt = null;
+
 try {
-  const stored = JSON.parse(safeGet('budget_var_incomes', '{}'));
-  if (stored && typeof stored === 'object') varIncomes = stored;
-} catch (e) { varIncomes = {}; }
-function saveVarIncomes() { safeSet('budget_var_incomes', JSON.stringify(varIncomes)); }
-function weekKey(offset) {
-  const { monday } = getWeekDates(offset);
-  return monday.toISOString().slice(0,10); // "YYYY-MM-DD"
+  const stored = JSON.parse(safeGet('budget_networth', 'null'));
+  if (stored && typeof stored === 'object') {
+    assets      = Array.isArray(stored.assets)      ? stored.assets      : JSON.parse(JSON.stringify(DEFAULT_ASSETS));
+    liabilities = Array.isArray(stored.liabilities) ? stored.liabilities : JSON.parse(JSON.stringify(DEFAULT_LIABILITIES));
+    networthUpdatedAt = stored.updatedAt || null;
+  } else {
+    assets      = JSON.parse(JSON.stringify(DEFAULT_ASSETS));
+    liabilities = JSON.parse(JSON.stringify(DEFAULT_LIABILITIES));
+  }
+} catch (e) {
+  assets      = JSON.parse(JSON.stringify(DEFAULT_ASSETS));
+  liabilities = JSON.parse(JSON.stringify(DEFAULT_LIABILITIES));
 }
-function getVarIncomesForWeek(offset) { return varIncomes[weekKey(offset)] || []; }
-function getVarIncomeTotal(offset) { return getVarIncomesForWeek(offset).reduce((s,e)=>s+e.amt,0); }
+
+function saveNetworth() {
+  networthUpdatedAt = new Date().toISOString();
+  safeSet('budget_networth', JSON.stringify({ assets, liabilities, updatedAt: networthUpdatedAt }));
+}
+
+const ASSET_EMOJIS = ['💰','💵','🏠','🚗','📈','💍','🏦','💻','📱','🛋️','✈️','🎓','💎','🌿','⛵'];
+const LIABILITY_EMOJIS = ['💳','🏠','🚗','📋','🏥','🎓','💸','📱','🔧','⚖️'];
+
+// (Variable income store removed — unified into extraDeposits above)
 
 // Restore language & theme preference
 const savedLang  = safeGet('budget_lang', null);
@@ -1064,10 +1287,11 @@ function weeklyBills() {
   }, 0);
 }
 // The spending limit is DERIVED, not set manually:
-// spendingLimit = income - fixed expenses - savings target
-// This is the correct accounting flow: income → obligations → savings → what's left to spend
-function weeklySpendingLimit() {
-  return Math.max(0, weeklyIncome() - weeklyBills() - settings.savingsTarget);
+// spendingLimit = stable income + spendable extra deposits this week - fixed expenses - savings target
+// Extra deposits flagged toSavings=false raise the limit; spread deposits contribute half this week + half next.
+function weeklySpendingLimit(offset) {
+  const off = (offset === undefined) ? currentWeekOffset : offset;
+  return Math.max(0, weeklyIncome() + getSpendableExtraForWeek(off) - weeklyBills() - settings.savingsTarget);
 }
 function fmt(n, showSign) {
   if (isNaN(n)) n = 0;
@@ -1140,16 +1364,15 @@ function getEarliestEntryOffset() {
 
 function getCarryoverBalance(uptoOffset) {
   // Carryover = how much of the SPENDING LIMIT was saved or overspent in prior weeks.
-  // spendingLimit per week = income - fixed - savingsTarget (derived, not manually set).
+  // Each week's limit includes THAT week's actual subsidy, so we compute it per-week.
   // Variable income is excluded from carryover — it affects savings, NOT the spending limit.
   const earliestOffset = getEarliestEntryOffset();
-  const spendLimit = weeklySpendingLimit();
   let carryover = 0;
   for (let w = earliestOffset; w < uptoOffset; w++) {
     const weekEntries = getWeekEntries(w);
     if (weekEntries.length === 0) continue;
     const spent = weekEntries.reduce((s,e)=>s+e.amt, 0);
-    carryover += spendLimit - spent;
+    carryover += weeklySpendingLimit(w) - spent; // per-week limit incl. that week's subsidy
   }
   return carryover;
 }
@@ -1362,65 +1585,93 @@ function pickIncomeEmoji(srcId, spanEl) {
 // ── Variable income (display-only, week tab) ──
 // Does NOT affect spending limit, carryover, or savings target.
 // User records it here as information, then manually decides how to allocate.
-function renderVarIncomeList() {
-  const items = getVarIncomesForWeek(currentWeekOffset);
-  const list  = document.getElementById('var-income-list');
+// ── Government subsidy input (week tab) ──
+// ── Extra deposits (unified: subsidies, freelance, any extra money) ──
+function renderExtraDepositList() {
+  const list = document.getElementById('extra-deposit-list');
   if (!list) return;
-  const totalRow = document.getElementById('var-income-total-row');
-  const totalEl  = document.getElementById('var-income-total');
+  const items = getExtraDepositsForWeek(currentWeekOffset);
 
   if (!items.length) {
-    list.innerHTML = '';
-    if (totalRow) totalRow.style.display = 'none';
+    list.innerHTML = `<div class="ed-empty">${t('noExtraDeposit')}</div>`;
     return;
   }
 
-  list.innerHTML = items.map(vi => `
-    <div class="var-income-item">
-      <input class="vi-desc" type="text" value="${escapeHtml(vi.desc)}"
-             placeholder="${t('varIncomeDescPlaceholder')}"
-             oninput="updateVarIncome('${vi.id}','desc',this.value)" />
-      <input class="vi-amt" type="number" inputmode="decimal" step="0.01"
-             value="${vi.amt || ''}" placeholder="$0"
-             onchange="updateVarIncome('${vi.id}','amt',parseFloat(this.value)||0)"
-             onblur="updateVarIncome('${vi.id}','amt',parseFloat(this.value)||0)" />
-      <button class="vi-del" onclick="deleteVarIncome('${vi.id}')">✕</button>
+  list.innerHTML = items.map(d => `
+    <div class="ed-item" id="ed-${d.id}">
+      <div class="ed-row1">
+        <input class="ed-desc" type="text" value="${escapeHtml(d.desc)}"
+               placeholder="${t('extraDepositDescPlaceholder')}"
+               oninput="updateExtraDeposit('${d.id}','desc',this.value)" />
+        <input class="ed-amt" type="number" inputmode="decimal" step="0.01"
+               value="${d.amt || ''}" placeholder="$0"
+               onchange="updateExtraDeposit('${d.id}','amt',parseFloat(this.value)||0)"
+               onblur="updateExtraDeposit('${d.id}','amt',parseFloat(this.value)||0)" />
+        <button class="ed-del" onclick="deleteExtraDeposit('${d.id}')">✕</button>
+      </div>
+      <div class="ed-row2">
+        <label class="ed-toggle">
+          <input type="checkbox" ${d.spread?'checked':''}
+                 onchange="updateExtraDeposit('${d.id}','spread',this.checked)" />
+          <span>${t('spreadLabel')}</span>
+        </label>
+        <div class="ed-flow">
+          <button class="ed-flow-btn ${!d.toSavings?'active':''}"
+                  onclick="updateExtraDeposit('${d.id}','toSavings',false)">${t('flowSpend')}</button>
+          <button class="ed-flow-btn ${d.toSavings?'active':''}"
+                  onclick="updateExtraDeposit('${d.id}','toSavings',true)">${t('flowSave')}</button>
+        </div>
+      </div>
     </div>`).join('');
-
-  const total = getVarIncomeTotal(currentWeekOffset);
-  if (totalEl) totalEl.textContent = fmt(total);
-  if (totalRow) totalRow.style.display = total > 0 ? 'flex' : 'none';
 }
 
-function addVarIncome() {
+function refreshBillsBreakdown() {
+  // Updates the budget breakdown numbers in the income & expenses tab without a full re-render
+  if (document.getElementById('tab-bills').style.display === 'none') return;
+  const income     = weeklyIncome();
+  const spendExtra = getSpendableExtraForWeek(0);
+  const fixed      = weeklyBills();
+  const disp       = income + spendExtra - fixed;
+  const spendLimit = weeklySpendingLimit(0);
+  const set = (id,val) => { const el=document.getElementById(id); if(el) el.textContent=val; };
+  set('bd-subsidy', fmt(spendExtra));
+  set('bd-disposable', fmt(disp));
+  set('bd-spend-limit', fmt(spendLimit));
+}
+
+function addExtraDeposit() {
   const key = weekKey(currentWeekOffset);
-  if (!varIncomes[key]) varIncomes[key] = [];
-  varIncomes[key].push({
+  if (!extraDeposits[key]) extraDeposits[key] = [];
+  extraDeposits[key].push({
     id: Date.now().toString(36)+Math.random().toString(36).slice(2,5),
-    desc: '', amt: 0
+    desc: '', amt: 0, spread: false, toSavings: false
   });
-  saveVarIncomes();
-  renderVarIncomeList();
-  const descs = document.querySelectorAll('.vi-desc');
+  saveExtraDeposits();
+  renderExtraDepositList();
+  const descs = document.querySelectorAll('.ed-desc');
   if (descs.length) descs[descs.length-1].focus();
 }
 
-function deleteVarIncome(id) {
+function deleteExtraDeposit(id) {
   const key = weekKey(currentWeekOffset);
-  if (!varIncomes[key]) return;
-  varIncomes[key] = varIncomes[key].filter(e=>e.id!==id);
-  saveVarIncomes();
-  renderVarIncomeList();
+  if (!extraDeposits[key]) return;
+  extraDeposits[key] = extraDeposits[key].filter(e=>e.id!==id);
+  if (extraDeposits[key].length === 0) delete extraDeposits[key];
+  saveExtraDeposits();
+  renderExtraDepositList();
+  refreshBillsBreakdown(); renderSummary(); renderMonth();
 }
 
-function updateVarIncome(id, field, value) {
+function updateExtraDeposit(id, field, value) {
   const key = weekKey(currentWeekOffset);
-  if (!varIncomes[key]) return;
-  const item = varIncomes[key].find(e=>e.id===id);
+  if (!extraDeposits[key]) return;
+  const item = extraDeposits[key].find(e=>e.id===id);
   if (!item) return;
   item[field] = value;
-  saveVarIncomes();
-  if (field === 'amt') renderVarIncomeList(); // update total display
+  saveExtraDeposits();
+  // spread/toSavings/amt all affect spending limit + savings.
+  // Full re-render of the list needed for flow button / toggle visual state (except plain desc typing).
+  if (field !== 'desc') { renderExtraDepositList(); refreshBillsBreakdown(); renderSummary(); renderMonth(); }
 }
 
 // ── Render: category breakdown (all categories — informational, shows where the budget went) ──
@@ -1472,14 +1723,14 @@ function renderEntries() {
 // ── Render: month ──
 function renderMonth() {
   const list = document.getElementById('month-list');
-  const spendLimit = weeklySpendingLimit(); // derived: income - fixed - savingsTarget
   let html = '';
   for (let i=0;i>=-4;i--) {
     const {monday,sunday} = getWeekDates(i);
-    const spent     = getWeekSpent(i);
-    const carryover = getCarryoverBalance(i);
-    const budget    = spendLimit + carryover;
-    const over      = spent > budget;
+    const spent      = getWeekSpent(i);
+    const spendLimit = weeklySpendingLimit(i); // per-week limit incl. that week's subsidy
+    const carryover  = getCarryoverBalance(i);
+    const budget     = spendLimit + carryover;
+    const over       = spent > budget;
     const label = i===0 ? t('thisWeek') : `${Math.abs(i)} ${t('weeksAgo')}`;
     const carryNote = Math.abs(carryover) >= 0.01
       ? ` <span style="color:var(--muted)">(${t('spendingLimitLabel')} ${fmt(spendLimit)} ${carryover>0?'+':'-'} ${fmt(Math.abs(carryover))})</span>`
@@ -1504,13 +1755,15 @@ function renderBillsTab() {
   document.getElementById('savings-target-inp').value = settings.savingsTarget;
 
   const income     = weeklyIncome();
+  const spendExtra = getSpendableExtraForWeek(0);  // this week's spendable extra deposits
   const fixed      = weeklyBills();
-  const disp       = income - fixed;           // disposable = income - fixed
-  const spendLimit = weeklySpendingLimit();    // derived: income - fixed - savingsTarget
+  const disp       = income + spendExtra - fixed;  // disposable = income + spendable extra - fixed
+  const spendLimit = weeklySpendingLimit(0);       // this week's limit (incl. spendable extra)
   const monthlySav = settings.savingsTarget * 4.33;
 
   document.getElementById('total-income-display').textContent = fmt(income);
   document.getElementById('bd-income').textContent     = fmt(income);
+  document.getElementById('bd-subsidy').textContent    = fmt(spendExtra);
   document.getElementById('bd-fixed').textContent      = fmt(-fixed, true);
   document.getElementById('bd-disposable').textContent = fmt(disp);
   document.getElementById('bd-spend-limit').textContent = fmt(spendLimit);
@@ -1518,6 +1771,8 @@ function renderBillsTab() {
 
   // Render the income sources card list
   renderIncomeSourcesList();
+  // Render the extra deposits list (now lives in this tab)
+  renderExtraDepositList();
 
   const billsList = document.getElementById('bills-list');
   billsList.innerHTML = settings.bills.map(b => {
@@ -1635,18 +1890,16 @@ function getWeeklySavingsRate() {
   return settings.savingsTarget; // committed weekly savings amount
 }
 
-// Total accumulated savings = (savingsTarget × weeks with data) + all variable income ever recorded
-// Variable income is assumed fully saved (user already decided how much to spend separately)
+// Total accumulated savings = (savingsTarget × weeks with data) + all extra deposits flagged toSavings
 function getAutoAccumulatedSavings() {
-  if (entries.length === 0 && Object.keys(varIncomes).length === 0) return 0;
+  if (entries.length === 0 && Object.keys(extraDeposits).length === 0) return 0;
 
-  // Find the earliest Monday that has any data (spending entries OR var income)
-  // by checking up to 104 weeks back (2 years max)
+  // Count weeks that have any data (spending entries OR any extra deposit), up to 104 weeks back
   let weeksWithData = 0;
   for (let w = -104; w <= 0; w++) {
-    const hasEntries   = getWeekEntries(w).length > 0;
-    const hasVarIncome = getVarIncomesForWeek(w).length > 0;
-    if (hasEntries || hasVarIncome) weeksWithData++;
+    const hasEntries  = getWeekEntries(w).length > 0;
+    const hasDeposits = getExtraDepositsForWeek(w).length > 0;
+    if (hasEntries || hasDeposits) weeksWithData++;
   }
 
   if (weeksWithData === 0) return 0;
@@ -1654,18 +1907,16 @@ function getAutoAccumulatedSavings() {
   // Fixed savings: savingsTarget × every week that had logged data
   const fixedSavings = getWeeklySavingsRate() * weeksWithData;
 
-  // Variable income: sum ALL recorded var income across ALL weeks (all treated as saved)
-  const allVarIncome = Object.values(varIncomes)
-    .flat()
-    .reduce((s, e) => s + (e.amt || 0), 0);
+  // Plus all extra deposits explicitly flagged as savings
+  const savingsDeposits = getAllSavingsDeposits();
 
-  return Math.max(0, fixedSavings + allVarIncome);
+  return Math.max(0, fixedSavings + savingsDeposits);
 }
 
 function renderGoalsTab() {
-  // Second card: this week's variable income (recorded as saved)
-  const thisWeekVarIncome = getVarIncomeTotal(0);
-  document.getElementById('goals-auto-weekly').textContent = fmt(thisWeekVarIncome);
+  // Second card: this week's extra deposits flagged as savings
+  const thisWeekSavings = getExtraDepositsForWeek(0).filter(d=>d.toSavings).reduce((s,d)=>s+(d.amt||0),0);
+  document.getElementById('goals-auto-weekly').textContent = fmt(thisWeekSavings);
 
   // Total accumulated savings = fixed target × weeks + all var income ever
   // This is shown regardless of whether any goals are set
@@ -1828,19 +2079,137 @@ function pickGoalEmoji(goalId, spanEl) {
   setTimeout(()=>document.addEventListener('click',()=>picker.remove(),{once:true}),50);
 }
 
-const TAB_IDS = ['week','month','bills','goals'];
+// ═══════════════════════════════════════
+//  NET WORTH (Assets & Liabilities)
+// ═══════════════════════════════════════
+
+function calcTotalAssets()      { return assets.reduce((s,a)=>s+(a.amt||0),0); }
+function calcTotalLiabilities() { return liabilities.reduce((s,l)=>s+(l.amt||0),0); }
+function calcNetWorth()         { return calcTotalAssets() - calcTotalLiabilities(); }
+
+function renderNetworthTab() {
+  const totalA = calcTotalAssets();
+  const totalL = calcTotalLiabilities();
+  const nw     = calcNetWorth();
+
+  document.getElementById('nw-total-assets').textContent      = fmt(totalA);
+  document.getElementById('nw-total-liabilities').textContent = fmt(totalL);
+  const nwEl = document.getElementById('nw-networth');
+  nwEl.textContent  = fmt(nw, true); // show minus sign for negative net worth
+  nwEl.className    = 'nw-summary-value ' + (nw >= 0 ? 'c-green' : 'c-red');
+
+  const updEl = document.getElementById('nw-updated');
+  if (networthUpdatedAt && updEl) {
+    const d = new Date(networthUpdatedAt);
+    updEl.textContent = t('nwLastUpdated') + ' ' + fmtDateAU(d);
+  }
+
+  // Render assets
+  const aList = document.getElementById('assets-list');
+  aList.innerHTML = assets.length ? assets.map(a => nwCardHTML(a, 'asset')).join('') :
+    `<div class="empty-state" style="padding:16px 0">${t('noAssets')}</div>`;
+
+  // Render liabilities
+  const lList = document.getElementById('liabilities-list');
+  lList.innerHTML = liabilities.length ? liabilities.map(l => nwCardHTML(l, 'liability')).join('') :
+    `<div class="empty-state" style="padding:16px 0">${t('noLiabilities')}</div>`;
+}
+
+function nwCardHTML(item, type) {
+  const placeholder = type === 'asset' ? t('assetNamePlaceholder') : t('liabilityNamePlaceholder');
+  return `
+    <div class="nw-card" id="nw-card-${item.id}">
+      <span class="nw-card-emoji" onclick="pickNwEmoji('${item.id}','${type}',this)">${item.emoji}</span>
+      <input class="nw-card-name" type="text" value="${escapeHtml(item.name)}"
+             placeholder="${placeholder}"
+             oninput="updateNwItem('${item.id}','${type}','name',this.value)" />
+      <input class="nw-card-amt" type="number" inputmode="decimal" step="0.01"
+             value="${item.amt || ''}" placeholder="$0"
+             onchange="updateNwItem('${item.id}','${type}','amt',parseFloat(this.value)||0)"
+             onblur="updateNwItem('${item.id}','${type}','amt',parseFloat(this.value)||0)" />
+      <button class="nw-card-del" onclick="deleteNwItem('${item.id}','${type}')">🗑</button>
+    </div>`;
+}
+
+function addAsset() {
+  assets.push({ id:'a_'+Date.now().toString(36)+Math.random().toString(36).slice(2,4), emoji:'💰', name:'', amt:0 });
+  saveNetworth(); renderNetworthTab();
+  const inputs = document.querySelectorAll('#assets-list .nw-card-name');
+  if (inputs.length) inputs[inputs.length-1].focus();
+}
+
+function addLiability() {
+  liabilities.push({ id:'l_'+Date.now().toString(36)+Math.random().toString(36).slice(2,4), emoji:'💳', name:'', amt:0 });
+  saveNetworth(); renderNetworthTab();
+  const inputs = document.querySelectorAll('#liabilities-list .nw-card-name');
+  if (inputs.length) inputs[inputs.length-1].focus();
+}
+
+async function deleteNwItem(id, type) {
+  const ok = await confirmDialog(type === 'asset' ? t('confirmDeleteAsset') : t('confirmDeleteLiability'));
+  if (!ok) return;
+  if (type === 'asset')      assets      = assets.filter(a=>a.id!==id);
+  else                       liabilities = liabilities.filter(l=>l.id!==id);
+  saveNetworth(); renderNetworthTab();
+}
+
+function updateNwItem(id, type, field, value) {
+  const list = type === 'asset' ? assets : liabilities;
+  const item = list.find(x=>x.id===id); if (!item) return;
+  item[field] = value;
+  if (field === 'amt') {
+    // Update totals without full re-render (keeps focus mid-typing)
+    const totalA = calcTotalAssets();
+    const totalL = calcTotalLiabilities();
+    const nw     = calcNetWorth();
+    document.getElementById('nw-total-assets').textContent      = fmt(totalA);
+    document.getElementById('nw-total-liabilities').textContent = fmt(totalL);
+    const nwEl = document.getElementById('nw-networth');
+    nwEl.textContent = fmt(nw, true); // show minus sign for negative net worth
+    nwEl.className   = 'nw-summary-value ' + (nw >= 0 ? 'c-green' : 'c-red');
+  }
+  saveNetworth();
+}
+
+function pickNwEmoji(id, type, spanEl) {
+  document.querySelectorAll('.emoji-options').forEach(el=>el.remove());
+  const picker = document.createElement('div');
+  picker.className = 'emoji-options';
+  const rect = spanEl.getBoundingClientRect();
+  let top=rect.bottom+6, left=rect.left;
+  if (left+260>window.innerWidth) left=window.innerWidth-268;
+  if (left<8) left=8;
+  if (top+160>window.innerHeight) top=rect.top-166;
+  picker.style.cssText=`top:${top}px;left:${left}px`;
+  const emojis = type === 'asset' ? ASSET_EMOJIS : LIABILITY_EMOJIS;
+  emojis.forEach(em => {
+    const s=document.createElement('span'); s.textContent=em;
+    s.onclick=e=>{
+      e.stopPropagation();
+      updateNwItem(id, type, 'emoji', em);
+      spanEl.textContent=em;
+      picker.remove();
+    };
+    picker.appendChild(s);
+  });
+  document.body.appendChild(picker);
+  setTimeout(()=>document.addEventListener('click',()=>picker.remove(),{once:true}),50);
+}
+
+const TAB_IDS = ['week','month','bills','goals','networth'];
 function switchTab(tab) {
   TAB_IDS.forEach(t => document.getElementById('tab-'+t).style.display = t===tab?'':'none');
   document.querySelectorAll('.tab').forEach((el,i) => el.className='tab'+(TAB_IDS[i]===tab?' active':''));
-  if (tab==='month') renderMonth();
-  if (tab==='bills') renderBillsTab();
-  if (tab==='goals') renderGoalsTab();
+  if (tab==='month')    renderMonth();
+  if (tab==='bills')    renderBillsTab();
+  if (tab==='goals')    renderGoalsTab();
+  if (tab==='networth') renderNetworthTab();
 }
 
 function changeWeek(delta) { currentWeekOffset+=delta; renderAll(); }
 
 function renderAll() {
-  renderWeekLabel(); renderSummary(); renderEntries(); renderMonth(); renderVarIncomeList();
+  renderWeekLabel(); renderSummary(); renderEntries(); renderMonth();
 }
 
 // ── Init ──
