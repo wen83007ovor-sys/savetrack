@@ -516,7 +516,55 @@
   .toggle-wrap input:checked + .toggle-slider { background: var(--accent); }
   .toggle-wrap input:checked + .toggle-slider::before { transform: translateX(18px); }
 
-  /* ── Update banner (PWA: new version available) ── */
+  /* ── Variable income (week tab, display-only) ── */
+  .var-income-box {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 14px; margin-top: 16px;
+    box-shadow: 0 1px 3px var(--shadow);
+  }
+  .var-income-header {
+    display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 8px;
+  }
+  .var-income-note { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .var-income-add-btn {
+    background: var(--surface); border: 1px solid var(--border); color: var(--accent);
+    border-radius: 8px; padding: 5px 10px; font-size: 16px; font-weight: 700;
+    cursor: pointer; flex-shrink: 0; -webkit-tap-highlight-color: transparent;
+  }
+  .var-income-item {
+    display: flex; align-items: center; gap: 8px; padding: 5px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .var-income-item:last-of-type { border-bottom: none; }
+  .vi-desc {
+    flex: 1; background: var(--surface); border: 1px solid var(--border);
+    color: var(--text); border-radius: 6px; padding: 7px 10px;
+    font-family: var(--font); font-size: 14px; outline: none; min-width: 0;
+    -webkit-appearance: none;
+  }
+  .vi-desc:focus { border-color: var(--accent); }
+  .vi-amt {
+    width: 90px; background: var(--surface); border: 1px solid var(--border);
+    color: var(--green); font-weight: 600;
+    border-radius: 6px; padding: 7px 8px; text-align: right;
+    font-family: var(--font); font-size: 14px; outline: none; flex-shrink: 0;
+    -webkit-appearance: none;
+  }
+  .vi-amt:focus { border-color: var(--green); }
+  .vi-del {
+    background: none; border: none; color: var(--muted);
+    cursor: pointer; font-size: 16px; padding: 4px; flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .vi-del:active { color: var(--red); }
+  .var-income-total-row {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 13px; font-weight: 600; padding-top: 8px;
+    border-top: 1px solid var(--border); margin-top: 6px;
+  }
+  .var-income-total-row span:first-child { color: var(--muted); }
+
+  /* ── Update banner (PWA) ── */
   .update-banner {
     position: fixed; left: 12px; right: 12px; bottom: 16px;
     z-index: 500; background: var(--accent); color: #fff;
@@ -581,9 +629,9 @@
   <!-- Summary -->
   <div class="summary-grid">
     <div class="s-card">
-      <div class="s-label" data-i18n="foodBudgetLabel">每週生活費預算</div>
-      <div class="s-value c-accent" id="sum-budget">$350</div>
-      <div class="s-sub" data-i18n="perWeekAvailable">每週可用</div>
+      <div class="s-label" data-i18n="spendingLimitLabel">本週可花費上限</div>
+      <div class="s-value c-accent" id="sum-budget">$0</div>
+      <div class="s-sub" data-i18n="derivedFromIncome">由收入自動計算</div>
     </div>
     <div class="s-card">
       <div class="s-label" data-i18n="spentThisWeek">本週已花</div>
@@ -592,7 +640,7 @@
     </div>
     <div class="s-card">
       <div class="s-label" data-i18n="remainOver">剩餘/超支</div>
-      <div class="s-value c-green" id="sum-remain">$350</div>
+      <div class="s-value c-green" id="sum-remain">$0</div>
       <div class="s-sub" id="sum-remain-sub" data-i18n="stillAvailable">還可以花</div>
     </div>
   </div>
@@ -601,7 +649,7 @@
 
   <!-- Progress -->
   <div class="budget-bar-wrap">
-    <div class="bar-label"><span data-i18n="budgetUsage">週生活費預算使用率</span><span id="bar-pct">0%</span></div>
+    <div class="bar-label"><span data-i18n="budgetUsage">本週花費使用率</span><span id="bar-pct">0%</span></div>
     <div class="bar-track"><div class="bar-fill" id="bar-fill" style="width:0%"></div></div>
   </div>
 
@@ -652,6 +700,22 @@
     <div class="entry-list" id="entry-list">
       <div class="empty-state" data-i18n="noEntries">本週還沒有記帳記錄 🌟</div>
     </div>
+
+    <!-- Variable income this week — display only, does NOT affect spending limit or carryover -->
+    <div class="var-income-box">
+      <div class="var-income-header">
+        <div>
+          <div class="section-title" style="margin-bottom:2px" data-i18n="varIncomeTitle">本週浮動收入（記錄用）</div>
+          <div class="var-income-note" data-i18n="varIncomeNote">不影響可花費上限，由你自行決定如何分配</div>
+        </div>
+        <button class="var-income-add-btn" onclick="addVarIncome()">＋</button>
+      </div>
+      <div id="var-income-list"></div>
+      <div class="var-income-total-row" id="var-income-total-row" style="display:none">
+        <span data-i18n="varIncomeTotal">本週浮動收入合計</span>
+        <span class="c-green" id="var-income-total">$0.00</span>
+      </div>
+    </div>
   </div>
 
   <!-- ═══ TAB: Month ═══ -->
@@ -663,29 +727,16 @@
   <!-- ═══ TAB: Bills ═══ -->
   <div id="tab-bills" style="display:none">
 
-    <div class="income-summary">
-      <div class="section-title" style="margin-bottom:10px" data-i18n="weeklyIncome">💰 每週收入</div>
-
-      <!-- Fixed income (always the same) -->
-      <div class="income-section-label" data-i18n="fixedIncomeLabel">📌 固定收入</div>
-      <div class="income-edit-row">
-        <label data-i18n="salaryLabel">💼 每週薪資</label>
-        <input type="number" id="inc-salary" inputmode="decimal" step="1" oninput="saveSettings();renderBillsTab()" />
+    <div class="bills-section">
+      <div class="bills-section-header">
+        <div class="bills-section-title" data-i18n="incomeSourcesTitle">💰 收入來源</div>
+        <span style="font-size:11px;color:var(--muted)" data-i18n="tapToEdit">點擊可編輯</span>
       </div>
-      <div class="income-edit-row">
-        <label data-i18n="subsidyLabel">🏛️ 政府補助（每兩週）</label>
-        <input type="number" id="inc-subsidy" inputmode="decimal" step="1" oninput="saveSettings();renderBillsTab()" />
-      </div>
-
-      <!-- Variable income (changes week to week) -->
-      <div class="income-section-label" style="margin-top:12px" data-i18n="variableIncomeLabel">📈 本週浮動收入</div>
-      <div id="extra-income-list"></div>
-      <button class="btn-add-variable-income" onclick="addExtraIncome()" data-i18n="addVariableIncomeBtn">＋ 新增收入項目</button>
-
-      <!-- Grand total -->
-      <div class="income-total-row">
+      <div id="income-sources-list"></div>
+      <button class="btn-add-bill" onclick="addIncomeSource()" data-i18n="addIncomeSourceBtn">＋ 新增收入來源</button>
+      <div class="income-total-row" style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
         <span style="color:var(--muted)" data-i18n="weeklyIncomeTotal">週收入合計</span>
-        <span class="c-green" id="total-income-display">$1,250.00</span>
+        <span class="c-green" id="total-income-display">$0.00</span>
       </div>
     </div>
 
@@ -706,12 +757,13 @@
       <div class="bd-row highlight"><span data-i18n="disposableBalance">可支配餘額</span><span class="c-accent" id="bd-disposable">$494.02</span></div>
       <hr class="bd-divider">
       <div class="bd-food-row">
-        <label data-i18n="foodBudgetWeekly">🛒 每週生活費預算</label>
-        <input type="number" id="food-budget-inp" inputmode="decimal" step="1" oninput="saveSettings();renderAll()" />
+        <label data-i18n="savingsTargetLabel">🐷 每週儲蓄目標</label>
+        <input type="number" id="savings-target-inp" inputmode="decimal" step="1" oninput="saveSettings();renderAll();renderBillsTab()" />
       </div>
-      <div class="bd-row highlight" style="margin-top:6px">
-        <span data-i18n="suggestedSavings">🐷 建議每週存款</span>
-        <span class="c-green" id="bd-savings">$144.02</span>
+      <hr class="bd-divider">
+      <div class="bd-row highlight">
+        <span data-i18n="spendingLimitLabel">🛒 本週可花費上限</span>
+        <span class="c-accent" id="bd-spend-limit">$0.00</span>
       </div>
       <div class="bd-row"><span data-i18n="monthlySavingsGoal">💰 月存款目標（×4.3）</span><span class="c-green" id="bd-monthly-savings">≈ $619</span></div>
     </div>
@@ -727,7 +779,7 @@
         <div class="goals-summary-value c-green" id="goals-total-saved">$0</div>
       </div>
       <div class="goals-summary-item">
-        <div class="goals-summary-label" data-i18n="autoWeeklySavings">本週自動存款</div>
+        <div class="goals-summary-label" data-i18n="thisWeekVarIncome">本週浮動收入</div>
         <div class="goals-summary-value c-accent" id="goals-auto-weekly">$0</div>
       </div>
     </div>
@@ -746,7 +798,8 @@
 // ═══════════════════════════════════════
 const I18N = {
   'zh-Hant': {
-    foodBudgetLabel: '每週生活費預算', perWeekAvailable: '每週可用',
+    foodBudgetLabel: '本週可花費上限', perWeekAvailable: '每週可用',
+    derivedFromIncome: '由收入自動計算',
     spentThisWeek: '本週已花', foodTotal: '全部支出合計',
     remainOver: '剩餘/超支', stillAvailable: '還可以花', overspentLabel: '⚠️ 已超支',
     carryoverPositive: '💰 已加入上週結餘', carryoverNegative: '⚠️ 已扣除上週超支',
@@ -756,10 +809,11 @@ const I18N = {
     extraIncomeDescPlaceholder: '收入來源名稱（如：按摩兼職、網站接案）',
     fixedIncomeLabel: '📌 固定收入', variableIncomeLabel: '📈 本週浮動收入',
     addVariableIncomeBtn: '＋ 新增收入項目',
-    budgetUsage: '週生活費預算使用率',
+    budgetUsage: '本週花費使用率',
     categoryBreakdown: '本週各分類花費', weekGrandTotal: '本週總支出（全部類別）',
-    weeklyBudgetLabel: '週預算',
-    overspendAlert: '⚠️ 本週生活費已超支！請留意所有支出。',
+    spendingLimitLabel: '本週可花費上限', savingsTargetLabel: '🐷 每週儲蓄目標',
+    weeklyBudgetLabel: '可花費上限',
+    overspendAlert: '⚠️ 本週花費已超支！請留意支出。',
     tabWeek: '本週記帳', tabMonth: '月度總覽', tabBills: '固定支出設定', tabGoals: '儲蓄目標',
     addExpense: '新增支出',
     descPlaceholder: '說明（如：超市買菜）', amtPlaceholder: '金額 $',
@@ -767,18 +821,26 @@ const I18N = {
     catFood: '🛒 伙食', catTransport: '🚗 交通', catKids: '🧸 小孩', catHealth: '💊 醫療', catMisc: '📦 其他',
     addEntryBtn: '＋ 記帳',
     weekDetail: '本週明細', noEntries: '本週還沒有記帳記錄 🌟',
+    varIncomeTitle: '本週浮動收入（記錄用）',
+    varIncomeNote: '不影響可花費上限，由你自行決定如何分配',
+    varIncomeTotal: '本週浮動收入合計',
+    varIncomeDescPlaceholder: '來源說明（如：按摩接案、額外班次）',
     monthlyOverview: '月度週別總覽',
     weeklyIncome: '💰 每週收入', salaryLabel: '💼 每週薪資', subsidyLabel: '🏛️ 政府補助（每兩週）',
     weeklyIncomeTotal: '週收入合計',
     fixedExpenseItems: '🏷️ 固定支出項目', tapToEdit: '點擊可編輯', addBillBtn: '＋ 新增固定支出',
+    incomeSourcesTitle: '💰 收入來源', addIncomeSourceBtn: '＋ 新增收入來源',
+    incomeSourceNamePlaceholder: '收入名稱（如：按摩薪資、CCS補助）',
+    confirmDeleteIncome: '確認刪除此收入來源？',
     budgetCalc: '📊 預算試算', weeklyIncomeRow: '週收入', fixedExpenseWeekly: '固定支出（週均）',
-    disposableBalance: '可支配餘額', foodBudgetWeekly: '🛒 每週生活費預算',
+    disposableBalance: '可支配餘額', foodBudgetWeekly: '🐷 每週儲蓄目標',
     suggestedSavings: '🐷 建議每週存款', monthlySavingsGoal: '💰 月存款目標（×4.3）',
     perWeek: '/週', confirmDeleteBill: '確認刪除此固定支出項目？', confirmDeleteEntry: '確認刪除此筆記錄？',
     cancelBtn: '取消', confirmBtn: '刪除', okBtn: '知道了',
     newVersionAvailable: '🎉 有新版本可用', updateNowBtn: '立即更新',
     // Savings Goals
     totalSaved: '累積已存', autoWeeklySavings: '每週自動存款',
+    thisWeekVarIncome: '本週浮動收入（已存）',
     addGoalBtn: '＋ 新增儲蓄目標', noGoals: '還沒有設定儲蓄目標 🐷',
     goalTarget: '目標金額', goalSavedSoFar: '目前已存', goalAutoSaved: '自動累積',
     stillNeeded: '距離目標還差', goalComplete: '目標達成！',
@@ -798,7 +860,8 @@ const I18N = {
     logoText1: '省', logoText2: '錢', logoText3: '計劃',
   },
   'en': {
-    foodBudgetLabel: 'Weekly Budget', perWeekAvailable: 'per week',
+    foodBudgetLabel: 'Spending Limit', perWeekAvailable: 'per week',
+    derivedFromIncome: 'calculated from income',
     spentThisWeek: 'Spent This Week', foodTotal: 'all spending',
     remainOver: 'Remain/Over', stillAvailable: 'still available', overspentLabel: '⚠️ Overspent',
     carryoverPositive: '💰 Includes carryover from last week', carryoverNegative: '⚠️ Deducted overspend from last week',
@@ -808,10 +871,11 @@ const I18N = {
     extraIncomeDescPlaceholder: 'Income source (e.g. Massage shift, Freelance project)',
     fixedIncomeLabel: '📌 Fixed Income', variableIncomeLabel: '📈 Variable Income This Week',
     addVariableIncomeBtn: '＋ Add Income',
-    budgetUsage: 'Weekly Budget Usage',
+    budgetUsage: 'Weekly Spending Usage',
     categoryBreakdown: "This Week's Spending by Category", weekGrandTotal: 'Total Spent This Week (All Categories)',
-    weeklyBudgetLabel: 'Weekly Budget',
-    overspendAlert: "⚠️ You've overspent your weekly budget!",
+    spendingLimitLabel: 'Spending Limit This Week', savingsTargetLabel: '🐷 Weekly Savings Target',
+    weeklyBudgetLabel: 'Spending Limit',
+    overspendAlert: "⚠️ You've exceeded your spending limit this week!",
     tabWeek: 'This Week', tabMonth: 'Monthly Overview', tabBills: 'Fixed Expenses', tabGoals: 'Savings Goals',
     addExpense: 'Add Expense',
     descPlaceholder: 'Description (e.g. Groceries)', amtPlaceholder: 'Amount $',
@@ -819,18 +883,26 @@ const I18N = {
     catFood: '🛒 Food', catTransport: '🚗 Transport', catKids: '🧸 Kids', catHealth: '💊 Health', catMisc: '📦 Other',
     addEntryBtn: '＋ Add',
     weekDetail: 'This Week\'s Details', noEntries: 'No entries yet this week 🌟',
+    varIncomeTitle: 'Variable Income This Week (info only)',
+    varIncomeNote: 'Does not affect your spending limit — you decide how to allocate it',
+    varIncomeTotal: 'Total Variable Income This Week',
+    varIncomeDescPlaceholder: 'Source (e.g. Massage job, Extra shift)',
     monthlyOverview: 'Weekly Overview (Last 5 Weeks)',
     weeklyIncome: '💰 Weekly Income', salaryLabel: '💼 Weekly Salary', subsidyLabel: '🏛️ Govt Subsidy (fortnightly)',
     weeklyIncomeTotal: 'Total Weekly Income',
     fixedExpenseItems: '🏷️ Fixed Expense Items', tapToEdit: 'Tap to edit', addBillBtn: '＋ Add Fixed Expense',
+    incomeSourcesTitle: '💰 Income Sources', addIncomeSourceBtn: '＋ Add Income Source',
+    incomeSourceNamePlaceholder: 'Income name (e.g. Massage salary, CCS subsidy)',
+    confirmDeleteIncome: 'Delete this income source?',
     budgetCalc: '📊 Budget Breakdown', weeklyIncomeRow: 'Weekly Income', fixedExpenseWeekly: 'Fixed Expenses (weekly avg)',
-    disposableBalance: 'Disposable Balance', foodBudgetWeekly: '🛒 Weekly Budget',
+    disposableBalance: 'Disposable Balance', foodBudgetWeekly: '🐷 Weekly Savings Target',
     suggestedSavings: '🐷 Suggested Weekly Savings', monthlySavingsGoal: '💰 Monthly Savings Goal (×4.3)',
     perWeek: '/wk', confirmDeleteBill: 'Delete this fixed expense item?', confirmDeleteEntry: 'Delete this entry?',
     cancelBtn: 'Cancel', confirmBtn: 'Delete', okBtn: 'OK',
     newVersionAvailable: '🎉 New version available', updateNowBtn: 'Update Now',
     // Savings Goals
     totalSaved: 'Total Saved', autoWeeklySavings: 'Weekly Auto-Save',
+    thisWeekVarIncome: 'Variable Income This Week (saved)',
     addGoalBtn: '＋ Add Savings Goal', noGoals: 'No savings goals yet 🐷',
     goalTarget: 'Target Amount', goalSavedSoFar: 'Saved So Far', goalAutoSaved: 'Auto-accumulated',
     stillNeeded: 'Still needed', goalComplete: 'Goal reached!',
@@ -964,7 +1036,12 @@ const DEFAULT_BILLS = [
   { id:'b8', emoji:'🍼', name:'尿布',         amt:30,     freq:'monthly' },
 ];
 
-const DEFAULT_SETTINGS = { salary:1000, subsidy:500, foodBudget:350, bills:DEFAULT_BILLS };
+const DEFAULT_INCOME_SOURCES = [
+  { id:'i1', emoji:'💼', name:'薪資',         amt:1000, freq:'weekly'      },
+  { id:'i2', emoji:'🏛️', name:'政府補助',     amt:500,  freq:'fortnightly' },
+];
+
+const DEFAULT_SETTINGS = { savingsTarget:150, bills:DEFAULT_BILLS, incomeSources:DEFAULT_INCOME_SOURCES };
 
 let currentWeekOffset = 0;
 let entries  = [];
@@ -979,11 +1056,23 @@ try {
   const stored = JSON.parse(safeGet('budget_settings', 'null'));
   if (stored && typeof stored === 'object' && Array.isArray(stored.bills)) {
     settings = stored;
+    // Migrate legacy salary/subsidy to incomeSources if upgrading from old version
+    if (!Array.isArray(settings.incomeSources)) {
+      settings.incomeSources = JSON.parse(JSON.stringify(DEFAULT_INCOME_SOURCES));
+      if (stored.salary)  settings.incomeSources[0].amt = stored.salary;
+      if (stored.subsidy) settings.incomeSources[1].amt = stored.subsidy;
+    }
+    // Migrate old foodBudget → savingsTarget
+    if (settings.savingsTarget === undefined && stored.foodBudget !== undefined) {
+      settings.savingsTarget = stored.foodBudget;
+    }
+    if (settings.savingsTarget === undefined) settings.savingsTarget = 150;
   }
 } catch (e) { /* keep defaults */ }
 
 let billIdCounter = 0;
 settings.bills.forEach((b) => { if (!b.id) { billIdCounter++; b.id = 'b_'+Date.now()+'_'+billIdCounter; } });
+settings.incomeSources.forEach((s,i) => { if (!s.id) s.id = 'i_'+Date.now()+'_'+i; });
 
 // ── Savings Goals data ──
 let goals = [];
@@ -993,28 +1082,20 @@ try {
 } catch (e) { goals = []; }
 function saveGoals() { safeSet('budget_goals', JSON.stringify(goals)); }
 
-// ── Extra income (per-week variable income: part-time, freelance, etc.) ──
-// Stored as { weekKey: [ {id, desc, amt}, ... ] }
-// weekKey format: "YYYY-WNN" derived from the Monday date of each week
-let extraIncomes = {};
+// ── Variable income (per-week, display-only — does NOT affect spending limit or carryover) ──
+// User decides themselves what to do with it: spend more, save more, or leave it.
+let varIncomes = {};
 try {
-  const stored = JSON.parse(safeGet('budget_extra_incomes', '{}'));
-  if (stored && typeof stored === 'object') extraIncomes = stored;
-} catch (e) { extraIncomes = {}; }
-function saveExtraIncomes() { safeSet('budget_extra_incomes', JSON.stringify(extraIncomes)); }
+  const stored = JSON.parse(safeGet('budget_var_incomes', '{}'));
+  if (stored && typeof stored === 'object') varIncomes = stored;
+} catch (e) { varIncomes = {}; }
+function saveVarIncomes() { safeSet('budget_var_incomes', JSON.stringify(varIncomes)); }
 function weekKey(offset) {
   const { monday } = getWeekDates(offset);
-  const y = monday.getFullYear();
-  const m = String(monday.getMonth()+1).padStart(2,'0');
-  const d = String(monday.getDate()).padStart(2,'0');
-  return `${y}-${m}-${d}`;
+  return monday.toISOString().slice(0,10); // "YYYY-MM-DD"
 }
-function getExtraIncomesForWeek(offset) {
-  return extraIncomes[weekKey(offset)] || [];
-}
-function getExtraIncomeTotal(offset) {
-  return getExtraIncomesForWeek(offset).reduce((s,e) => s+e.amt, 0);
-}
+function getVarIncomesForWeek(offset) { return varIncomes[weekKey(offset)] || []; }
+function getVarIncomeTotal(offset) { return getVarIncomesForWeek(offset).reduce((s,e)=>s+e.amt,0); }
 
 // Restore language & theme preference
 const savedLang  = safeGet('budget_lang', null);
@@ -1023,10 +1104,25 @@ if (savedLang === 'zh-Hant' || savedLang === 'en') currentLang = savedLang;
 if (savedTheme === 'dark' || savedTheme === 'light') currentTheme = savedTheme;
 
 // ── Calc helpers ──
-function weeklyIncomeBase()  { return settings.salary + settings.subsidy / 2; } // fixed income only
-function weeklyIncomeTotal(offset) { return weeklyIncomeBase() + getExtraIncomeTotal(offset); } // includes this week's extra
-function weeklyIncome()  { return weeklyIncomeBase(); } // alias for bills tab (shows base; extra shown separately)
-function weeklyBills()   { return settings.bills.reduce((s,b) => { const f = FREQ_OPTIONS.find(o=>o.value===b.freq)||FREQ_OPTIONS[2]; return s + b.amt/f.divisor; }, 0); }
+// All income sources are now unified in settings.incomeSources (same structure as bills)
+function weeklyIncome() {
+  return settings.incomeSources.reduce((s,src) => {
+    const f = FREQ_OPTIONS.find(o=>o.value===src.freq)||FREQ_OPTIONS[2];
+    return s + src.amt / f.divisor;
+  }, 0);
+}
+function weeklyBills() {
+  return settings.bills.reduce((s,b) => {
+    const f = FREQ_OPTIONS.find(o=>o.value===b.freq)||FREQ_OPTIONS[2];
+    return s + b.amt/f.divisor;
+  }, 0);
+}
+// The spending limit is DERIVED, not set manually:
+// spendingLimit = income - fixed expenses - savings target
+// This is the correct accounting flow: income → obligations → savings → what's left to spend
+function weeklySpendingLimit() {
+  return Math.max(0, weeklyIncome() - weeklyBills() - settings.savingsTarget);
+}
 function fmt(n, showSign) {
   if (isNaN(n)) n = 0;
   if (showSign) return (n < 0 ? '-$' : '$') + Math.abs(n).toFixed(2);
@@ -1097,26 +1193,24 @@ function getEarliestEntryOffset() {
 }
 
 function getCarryoverBalance(uptoOffset) {
-  // Carryover = how much of the LIVING EXPENSES BUDGET was saved or overspent in prior weeks.
-  // Formula: for each week with logged entries, (baseBudget - spent).
-  // Variable/freelance income is intentionally excluded — it affects savings, NOT the living budget.
+  // Carryover = how much of the SPENDING LIMIT was saved or overspent in prior weeks.
+  // spendingLimit per week = income - fixed - savingsTarget (derived, not manually set).
+  // Variable income is excluded from carryover — it affects savings, NOT the spending limit.
   const earliestOffset = getEarliestEntryOffset();
-  const base = settings.foodBudget;
+  const spendLimit = weeklySpendingLimit();
   let carryover = 0;
   for (let w = earliestOffset; w < uptoOffset; w++) {
     const weekEntries = getWeekEntries(w);
-    if (weekEntries.length === 0) continue; // skip weeks with no logged spending at all
+    if (weekEntries.length === 0) continue;
     const spent = weekEntries.reduce((s,e)=>s+e.amt, 0);
-    carryover += base - spent; // purely: did you spend more or less than your living budget?
+    carryover += spendLimit - spent;
   }
   return carryover;
 }
 function getTotalSpent(offset) { return getWeekEntries(offset).reduce((s,e)=>s+e.amt,0); } // kept as alias for monthly view compatibility
 
 function saveSettings() {
-  settings.salary     = parseFloat(document.getElementById('inc-salary').value)      || 0;
-  settings.subsidy    = parseFloat(document.getElementById('inc-subsidy').value)     || 0;
-  settings.foodBudget = parseFloat(document.getElementById('food-budget-inp').value) || 0;
+  settings.savingsTarget = parseFloat(document.getElementById('savings-target-inp').value) || 0;
   safeSet('budget_settings', JSON.stringify(settings));
 }
 function saveEntries() { safeSet('budget_entries', JSON.stringify(entries)); }
@@ -1181,9 +1275,9 @@ function renderWeekLabel() {
 // ── Render: summary ──
 function renderSummary() {
   const spent      = getWeekSpent(currentWeekOffset);
-  const baseBudget = settings.foodBudget;
+  const spendLimit = weeklySpendingLimit(); // DERIVED: income - fixed - savingsTarget
   const carryover  = getCarryoverBalance(currentWeekOffset);
-  const budget     = baseBudget + carryover; // living budget = base ± carryover ONLY, no variable income
+  const budget     = spendLimit + carryover; // this week's actual available spending
   const remain     = budget - spent;
   const over       = spent > budget;
   const pct        = budget > 0 ? Math.min(spent/budget*100, 100) : (spent > 0 ? 100 : 0);
@@ -1218,76 +1312,169 @@ function renderSummary() {
   renderCategoryBreakdown();
 }
 
-// ── Render: extra income list (inside bills tab income section) ──
-function renderExtraIncomeList() {
-  const items = getExtraIncomesForWeek(0); // always show current week's variable income in bills tab
-  const list = document.getElementById('extra-income-list');
+// ── Income sources (unified card list in bills tab, same interface as expenses) ──
+function renderIncomeSourcesList() {
+  const list = document.getElementById('income-sources-list');
   if (!list) return;
-  if (!items.length) {
-    list.innerHTML = `<div class="ei-empty">${t('noExtraIncome')}</div>`;
-    return;
-  }
-  list.innerHTML = items.map(ei => `
-    <div class="extra-income-item">
-      <input class="ei-desc" type="text" value="${escapeHtml(ei.desc)}" placeholder="${t('extraIncomeDescPlaceholder')}"
-             oninput="updateExtraIncome('${ei.id}','desc',this.value)" />
-      <input class="ei-amt" type="number" inputmode="decimal" step="0.01" value="${ei.amt || ''}"
-             placeholder="$0" onchange="updateExtraIncome('${ei.id}','amt',parseFloat(this.value)||0)"
-             onblur="updateExtraIncome('${ei.id}','amt',parseFloat(this.value)||0)" />
-      <button class="ei-del" onclick="deleteExtraIncome('${ei.id}')">✕</button>
-    </div>`).join('');
+
+  const income = weeklyIncome();
+  document.getElementById('total-income-display').textContent = fmt(income);
+
+  list.innerHTML = settings.incomeSources.map(src => {
+    const f = FREQ_OPTIONS.find(o=>o.value===src.freq)||FREQ_OPTIONS[2];
+    const weekly = src.amt / f.divisor;
+    const freqOpts = FREQ_OPTIONS.map(o=>`<option value="${o.value}"${o.value===src.freq?' selected':''}>${t(o.i18n)}</option>`).join('');
+    return `
+      <div class="bill-card" id="income-row-${src.id}">
+        <div class="bill-card-top">
+          <span class="emoji-cell" onclick="pickIncomeEmoji('${src.id}',this)">${src.emoji}</span>
+          <input class="bill-name-inp" type="text" value="${escapeHtml(src.name)}"
+                 placeholder="${t('incomeSourceNamePlaceholder')}"
+                 oninput="updateIncomeSource('${src.id}','name',this.value)" />
+          <button class="bill-del-btn" onclick="deleteIncomeSource('${src.id}')">🗑</button>
+        </div>
+        <div class="bill-card-bottom">
+          <input type="number" step="0.01" value="${src.amt}" placeholder="0" inputmode="decimal"
+                 onchange="updateIncomeSource('${src.id}','amt',parseFloat(this.value)||0)"
+                 onblur="updateIncomeSource('${src.id}','amt',parseFloat(this.value)||0)" />
+          <select onchange="updateIncomeSource('${src.id}','freq',this.value)">${freqOpts}</select>
+          <span class="weekly-cell" id="iwc-${src.id}">${fmt(weekly)}${t('perWeek')}</span>
+        </div>
+      </div>`;
+  }).join('');
 }
 
-function addExtraIncome() {
-  const key = weekKey(0); // variable income always for current week when in bills tab
-  if (!extraIncomes[key]) extraIncomes[key] = [];
-  extraIncomes[key].push({
+function addIncomeSource() {
+  settings.incomeSources.push({
+    id: 'i_'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),
+    emoji: '💰', name: '', amt: 0, freq: 'monthly'
+  });
+  safeSet('budget_settings', JSON.stringify(settings));
+  renderBillsTab();
+  const inputs = document.querySelectorAll('#income-sources-list .bill-name-inp');
+  if (inputs.length) inputs[inputs.length-1].focus();
+}
+
+async function deleteIncomeSource(id) {
+  const ok = await confirmDialog(t('confirmDeleteIncome'));
+  if (!ok) return;
+  settings.incomeSources = settings.incomeSources.filter(s=>s.id!==id);
+  safeSet('budget_settings', JSON.stringify(settings));
+  renderBillsTab();
+}
+
+function updateIncomeSource(id, field, value) {
+  const src = settings.incomeSources.find(s=>s.id===id); if (!src) return;
+  src[field] = value;
+  const f = FREQ_OPTIONS.find(o=>o.value===src.freq)||FREQ_OPTIONS[2];
+  const wc = document.getElementById('iwc-'+id);
+  if (wc) wc.textContent = fmt(src.amt/f.divisor)+t('perWeek');
+  // Update totals without full re-render (keeps focus mid-typing)
+  const income     = weeklyIncome();
+  const fixed      = weeklyBills();
+  const disp       = income - fixed;
+  const spendLimit = weeklySpendingLimit();
+  const el = document.getElementById('total-income-display');
+  if (el) el.textContent = fmt(income);
+  const bdInc = document.getElementById('bd-income');
+  if (bdInc) bdInc.textContent = fmt(income);
+  const bdDisp = document.getElementById('bd-disposable');
+  if (bdDisp) bdDisp.textContent = fmt(disp);
+  const bdSpend = document.getElementById('bd-spend-limit');
+  if (bdSpend) bdSpend.textContent = fmt(spendLimit);
+  const bdMon = document.getElementById('bd-monthly-savings');
+  if (bdMon) bdMon.textContent = '≈ '+fmt(settings.savingsTarget * 4.33);
+  safeSet('budget_settings', JSON.stringify(settings));
+}
+
+function pickIncomeEmoji(srcId, spanEl) {
+  document.querySelectorAll('.emoji-options').forEach(el=>el.remove());
+  const picker = document.createElement('div');
+  picker.className = 'emoji-options';
+  const rect = spanEl.getBoundingClientRect();
+  let top = rect.bottom+6, left = rect.left;
+  const pw=260, ph=160;
+  if (left+pw > window.innerWidth) left = window.innerWidth-pw-8;
+  if (left < 8) left = 8;
+  if (top+ph > window.innerHeight) top = rect.top-ph-6;
+  picker.style.cssText = `top:${top}px;left:${left}px`;
+  const INCOME_EMOJIS = ['💼','🏛️','💻','🎨','✂️','💆','🚗','📦','🎓','🏥','🎵','💰','🌿','📱','🔧','✈️','🏋️','☕','📺','🛒'];
+  INCOME_EMOJIS.forEach(em => {
+    const s = document.createElement('span'); s.textContent = em;
+    s.onclick = e => {
+      e.stopPropagation();
+      const src = settings.incomeSources.find(x=>x.id===srcId);
+      if (src) { src.emoji=em; safeSet('budget_settings',JSON.stringify(settings)); renderBillsTab(); }
+      picker.remove();
+    };
+    picker.appendChild(s);
+  });
+  document.body.appendChild(picker);
+  setTimeout(()=>document.addEventListener('click',()=>picker.remove(),{once:true}),50);
+}
+
+// ── Variable income (display-only, week tab) ──
+// Does NOT affect spending limit, carryover, or savings target.
+// User records it here as information, then manually decides how to allocate.
+function renderVarIncomeList() {
+  const items = getVarIncomesForWeek(currentWeekOffset);
+  const list  = document.getElementById('var-income-list');
+  if (!list) return;
+  const totalRow = document.getElementById('var-income-total-row');
+  const totalEl  = document.getElementById('var-income-total');
+
+  if (!items.length) {
+    list.innerHTML = '';
+    if (totalRow) totalRow.style.display = 'none';
+    return;
+  }
+
+  list.innerHTML = items.map(vi => `
+    <div class="var-income-item">
+      <input class="vi-desc" type="text" value="${escapeHtml(vi.desc)}"
+             placeholder="${t('varIncomeDescPlaceholder')}"
+             oninput="updateVarIncome('${vi.id}','desc',this.value)" />
+      <input class="vi-amt" type="number" inputmode="decimal" step="0.01"
+             value="${vi.amt || ''}" placeholder="$0"
+             onchange="updateVarIncome('${vi.id}','amt',parseFloat(this.value)||0)"
+             onblur="updateVarIncome('${vi.id}','amt',parseFloat(this.value)||0)" />
+      <button class="vi-del" onclick="deleteVarIncome('${vi.id}')">✕</button>
+    </div>`).join('');
+
+  const total = getVarIncomeTotal(currentWeekOffset);
+  if (totalEl) totalEl.textContent = fmt(total);
+  if (totalRow) totalRow.style.display = total > 0 ? 'flex' : 'none';
+}
+
+function addVarIncome() {
+  const key = weekKey(currentWeekOffset);
+  if (!varIncomes[key]) varIncomes[key] = [];
+  varIncomes[key].push({
     id: Date.now().toString(36)+Math.random().toString(36).slice(2,5),
     desc: '', amt: 0
   });
-  saveExtraIncomes();
-  renderBillsTab(); // re-render bills tab (where the list now lives)
-  renderSummary();  // also update the week summary bar
-  // Focus the new description input
-  const descs = document.querySelectorAll('.ei-desc');
+  saveVarIncomes();
+  renderVarIncomeList();
+  const descs = document.querySelectorAll('.vi-desc');
   if (descs.length) descs[descs.length-1].focus();
 }
 
-function deleteExtraIncome(id) {
-  const key = weekKey(0);
-  if (!extraIncomes[key]) return;
-  extraIncomes[key] = extraIncomes[key].filter(e => e.id !== id);
-  saveExtraIncomes();
-  renderBillsTab();
-  renderSummary();
+function deleteVarIncome(id) {
+  const key = weekKey(currentWeekOffset);
+  if (!varIncomes[key]) return;
+  varIncomes[key] = varIncomes[key].filter(e=>e.id!==id);
+  saveVarIncomes();
+  renderVarIncomeList();
 }
 
-function updateExtraIncome(id, field, value) {
-  const key = weekKey(0);
-  if (!extraIncomes[key]) return;
-  const item = extraIncomes[key].find(e => e.id === id);
+function updateVarIncome(id, field, value) {
+  const key = weekKey(currentWeekOffset);
+  if (!varIncomes[key]) return;
+  const item = varIncomes[key].find(e=>e.id===id);
   if (!item) return;
   item[field] = value;
-  saveExtraIncomes();
-  if (field === 'amt') {
-    // Update income total display and summary without full re-render (keeps focus)
-    const income = weeklyIncomeBase() + getExtraIncomeTotal(0);
-    const el = document.getElementById('total-income-display');
-    if (el) el.textContent = fmt(income);
-    const bdIncome = document.getElementById('bd-income');
-    if (bdIncome) bdIncome.textContent = fmt(income);
-    const fixed = weeklyBills();
-    const disp = income - fixed;
-    const savings = disp - settings.foodBudget;
-    const bdDisp = document.getElementById('bd-disposable');
-    if (bdDisp) bdDisp.textContent = fmt(disp);
-    const bdSav = document.getElementById('bd-savings');
-    if (bdSav) { bdSav.textContent = fmt(savings, true); bdSav.className = savings>=0?'c-green':'c-red'; }
-    const bdMon = document.getElementById('bd-monthly-savings');
-    if (bdMon) bdMon.textContent = '≈ '+fmt(Math.max(0,savings)*4.33);
-    renderSummary(); // update week tab summary bar
-  }
-  // desc: just save, focus stays
+  saveVarIncomes();
+  if (field === 'amt') renderVarIncomeList(); // update total display
 }
 
 // ── Render: category breakdown (all categories — informational, shows where the budget went) ──
@@ -1338,18 +1525,18 @@ function renderEntries() {
 
 // ── Render: month ──
 function renderMonth() {
-  const list   = document.getElementById('month-list');
-  const baseBudget = settings.foodBudget;
+  const list = document.getElementById('month-list');
+  const spendLimit = weeklySpendingLimit(); // derived: income - fixed - savingsTarget
   let html = '';
   for (let i=0;i>=-4;i--) {
     const {monday,sunday} = getWeekDates(i);
     const spent     = getWeekSpent(i);
     const carryover = getCarryoverBalance(i);
-    const budget    = baseBudget + carryover; // living budget only, no variable income
+    const budget    = spendLimit + carryover;
     const over      = spent > budget;
     const label = i===0 ? t('thisWeek') : `${Math.abs(i)} ${t('weeksAgo')}`;
     const carryNote = Math.abs(carryover) >= 0.01
-      ? ` <span style="color:var(--muted)">(${t('weeklyBudgetLabel')} ${fmt(baseBudget)} ${carryover>0?'+':'-'} ${fmt(Math.abs(carryover))})</span>`
+      ? ` <span style="color:var(--muted)">(${t('spendingLimitLabel')} ${fmt(spendLimit)} ${carryover>0?'+':'-'} ${fmt(Math.abs(carryover))})</span>`
       : '';
     html += `
       <div class="month-week">
@@ -1368,26 +1555,23 @@ function renderMonth() {
 
 // ── Render: bills tab ──
 function renderBillsTab() {
-  document.getElementById('inc-salary').value      = settings.salary;
-  document.getElementById('inc-subsidy').value     = settings.subsidy;
-  document.getElementById('food-budget-inp').value = settings.foodBudget;
+  document.getElementById('savings-target-inp').value = settings.savingsTarget;
 
-  const extraThisWeek = getExtraIncomeTotal(0); // variable income for current week
-  const income  = weeklyIncomeBase() + extraThisWeek;
-  const fixed   = weeklyBills();
-  const disp    = income - fixed;
-  const savings = disp - settings.foodBudget;
+  const income     = weeklyIncome();
+  const fixed      = weeklyBills();
+  const disp       = income - fixed;           // disposable = income - fixed
+  const spendLimit = weeklySpendingLimit();    // derived: income - fixed - savingsTarget
+  const monthlySav = settings.savingsTarget * 4.33;
 
   document.getElementById('total-income-display').textContent = fmt(income);
   document.getElementById('bd-income').textContent     = fmt(income);
   document.getElementById('bd-fixed').textContent      = fmt(-fixed, true);
   document.getElementById('bd-disposable').textContent = fmt(disp);
-  document.getElementById('bd-savings').textContent    = fmt(savings, true);
-  document.getElementById('bd-savings').className      = savings>=0?'c-green':'c-red';
-  document.getElementById('bd-monthly-savings').textContent = '≈ '+fmt(Math.max(0,savings)*4.33);
+  document.getElementById('bd-spend-limit').textContent = fmt(spendLimit);
+  document.getElementById('bd-monthly-savings').textContent = '≈ '+fmt(monthlySav);
 
-  // Render the variable income list inside the income section
-  renderExtraIncomeList();
+  // Render the income sources card list
+  renderIncomeSourcesList();
 
   const billsList = document.getElementById('bills-list');
   billsList.innerHTML = settings.bills.map(b => {
@@ -1419,12 +1603,11 @@ function updateBill(id, field, value) {
   const f = FREQ_OPTIONS.find(o=>o.value===b.freq)||FREQ_OPTIONS[2];
   const wc = document.getElementById('wc-'+id);
   if (wc) wc.textContent = fmt(b.amt/f.divisor)+t('perWeek');
-  const income=weeklyIncome(), fixed=weeklyBills(), disp=income-fixed, savings=disp-settings.foodBudget;
-  document.getElementById('bd-fixed').textContent      = fmt(-fixed, true);
-  document.getElementById('bd-disposable').textContent = fmt(disp);
-  document.getElementById('bd-savings').textContent    = fmt(savings, true);
-  document.getElementById('bd-savings').className      = savings>=0?'c-green':'c-red';
-  document.getElementById('bd-monthly-savings').textContent = '≈ '+fmt(Math.max(0,savings)*4.33);
+  const income=weeklyIncome(), fixed=weeklyBills(), disp=income-fixed, spendLimit=weeklySpendingLimit();
+  document.getElementById('bd-fixed').textContent       = fmt(-fixed, true);
+  document.getElementById('bd-disposable').textContent  = fmt(disp);
+  document.getElementById('bd-spend-limit').textContent = fmt(spendLimit);
+  document.getElementById('bd-monthly-savings').textContent = '≈ '+fmt(settings.savingsTarget*4.33);
   safeSet('budget_settings', JSON.stringify(settings));
 }
 
@@ -1501,33 +1684,45 @@ async function deleteEntry(id) {
 //  SAVINGS GOALS
 // ═══════════════════════════════════════
 
-// Uses base income only (no extra income) for a conservative ETA estimate on goals.
-// Extra income varies week to week, so using it would give an over-optimistic timeline.
+// Uses the unified weeklyIncome() for a conservative ETA projection on goals.
 function getWeeklySavingsRate() {
-  return Math.max(0, weeklyIncomeBase() - weeklyBills() - settings.foodBudget);
+  return settings.savingsTarget; // committed weekly savings amount
 }
 
-// Total auto-accumulated savings: sum of weekly savings rate × number of weeks
-// since the earliest entry (same logic as carryover, but for savings tracking)
+// Total accumulated savings = (savingsTarget × weeks with data) + all variable income ever recorded
+// Variable income is assumed fully saved (user already decided how much to spend separately)
 function getAutoAccumulatedSavings() {
   const earliestOffset = getEarliestEntryOffset();
-  if (earliestOffset === 0) return 0; // no history yet
-  const weeksWithData = Math.abs(earliestOffset); // how many weeks have passed since we started
-  return Math.max(0, getWeeklySavingsRate() * weeksWithData);
+  if (entries.length === 0 && Object.keys(varIncomes).length === 0) return 0;
+
+  // Count weeks with any logged data (entries OR variable income)
+  let weeksWithData = 0;
+  for (let w = earliestOffset; w <= 0; w++) {
+    const hasEntries = getWeekEntries(w).length > 0;
+    const hasVarIncome = getVarIncomesForWeek(w).length > 0;
+    if (hasEntries || hasVarIncome) weeksWithData++;
+  }
+
+  // Fixed savings: savingsTarget × weeks used
+  const fixedSavings = getWeeklySavingsRate() * weeksWithData;
+
+  // Variable income: sum ALL recorded variable income across ALL weeks
+  const allVarIncome = Object.values(varIncomes)
+    .flat()
+    .reduce((s, e) => s + (e.amt || 0), 0);
+
+  return Math.max(0, fixedSavings + allVarIncome);
 }
 
 function renderGoalsTab() {
-  const weeklyRate = getWeeklySavingsRate();
-  document.getElementById('goals-auto-weekly').textContent = fmt(weeklyRate);
+  // Second card: this week's variable income (recorded as saved)
+  const thisWeekVarIncome = getVarIncomeTotal(0);
+  document.getElementById('goals-auto-weekly').textContent = fmt(thisWeekVarIncome);
 
-  // Total saved = sum of manual amounts for goals that don't use auto,
-  // plus auto-accumulated amount split proportionally for goals that do use auto
-  const autoGoals = goals.filter(g => g.autoAccumulate);
+  // Total accumulated savings = fixed target × weeks + all var income ever
+  // This is shown regardless of whether any goals are set
   const autoTotal = getAutoAccumulatedSavings();
-  const manualTotal = goals.filter(g => !g.autoAccumulate).reduce((s,g) => s+g.savedAmt, 0);
-  const autoPerGoal = autoGoals.length > 0 ? autoTotal / autoGoals.length : 0;
-  const grandTotal = manualTotal + (autoGoals.length > 0 ? autoTotal : 0);
-  document.getElementById('goals-total-saved').textContent = fmt(grandTotal);
+  document.getElementById('goals-total-saved').textContent = fmt(autoTotal);
 
   const list = document.getElementById('goals-list');
   if (!goals.length) {
@@ -1535,8 +1730,12 @@ function renderGoalsTab() {
     return;
   }
 
+  const weeklyRate = getWeeklySavingsRate(); // for ETA calculation
+
   list.innerHTML = goals.map(g => {
-    const saved = g.autoAccumulate ? autoPerGoal + g.savedAmt : g.savedAmt;
+    // If auto-accumulate is on, the goal tracks the full accumulated savings pool
+    // (savingsTarget × weeks + all var income). Each auto goal independently shows this total.
+    const saved = g.autoAccumulate ? autoTotal + g.savedAmt : g.savedAmt;
     const pct = g.targetAmt > 0 ? Math.min(saved / g.targetAmt * 100, 100) : 0;
     const remaining = Math.max(0, g.targetAmt - saved);
     const complete = saved >= g.targetAmt;
@@ -1693,7 +1892,7 @@ function switchTab(tab) {
 function changeWeek(delta) { currentWeekOffset+=delta; renderAll(); }
 
 function renderAll() {
-  renderWeekLabel(); renderSummary(); renderEntries(); renderMonth();
+  renderWeekLabel(); renderSummary(); renderEntries(); renderMonth(); renderVarIncomeList();
 }
 
 // ── Init ──
@@ -1709,9 +1908,7 @@ window.onload = () => {
   dateInp.min = fmtDateInp(minD);
   dateInp.max = fmtDateInp(maxD);
 
-  document.getElementById('inc-salary').value      = settings.salary;
-  document.getElementById('inc-subsidy').value     = settings.subsidy;
-  document.getElementById('food-budget-inp').value = settings.foodBudget;
+  document.getElementById('savings-target-inp').value = settings.savingsTarget;
 
   dateInp.addEventListener('change', syncDateDisplay);
   dateInp.addEventListener('input', syncDateDisplay);
