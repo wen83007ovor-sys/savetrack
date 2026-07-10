@@ -703,8 +703,8 @@
     <div class="add-box">
       <div class="add-title" data-i18n="addExpense">新增支出</div>
       <div class="add-row">
-        <input id="inp-desc" type="text" data-i18n-placeholder="descPlaceholder" placeholder="說明（如：超市買菜）" />
-        <input id="inp-amt" type="number" step="0.01" data-i18n-placeholder="amtPlaceholder" placeholder="金額 $" inputmode="decimal" />
+        <input id="inp-desc" type="text" data-i18n-placeholder="descPlaceholder" placeholder="項目說明" />
+        <input id="inp-amt" type="number" step="0.01" data-i18n-placeholder="amtPlaceholder" placeholder="$0" inputmode="decimal" />
         <div class="date-field-wrap">
           <input id="inp-date" type="date" class="date-native-input" />
           <div class="date-display" id="date-display" onclick="document.getElementById('inp-date').showPicker ? document.getElementById('inp-date').showPicker() : document.getElementById('inp-date').focus()">—</div>
@@ -886,18 +886,18 @@ const I18N = {
     overspendAlert: '⚠️ 本週花費已超支！請留意支出。',
     tabWeek: '本週記帳', tabMonth: '月度總覽', tabBills: '收入與支出', tabGoals: '儲蓄目標',
     addExpense: '新增支出',
-    descPlaceholder: '說明（如：超市買菜）', amtPlaceholder: '金額 $',
+    descPlaceholder: '項目說明', amtPlaceholder: '$0',
     dateHint: '格式：DD/MM/YYYY（澳洲格式）',
     catFood: '🛒 伙食', catTransport: '🚗 交通', catKids: '🧸 小孩', catHealth: '💊 醫療', catMisc: '📦 其他',
     addEntryBtn: '＋ 記帳',
     weekDetail: '本週明細', noEntries: '本週還沒有記帳記錄 🌟',
     extraDepositTitle: '💵 本週額外進帳',
     extraDepositNote: '入帳後填實際金額，可選平攤兩週、以及進可花費或進儲蓄',
-    extraDepositDescPlaceholder: '來源說明（如：政府補助、按摩接案）',
+    extraDepositDescPlaceholder: '進帳來源',
     noExtraDeposit: '本週尚未有額外進帳',
     varExpenseTitle: '📋 本週浮動固定支出',
     varExpenseNote: '每週都有但金額會變（如幼兒園），先扣掉再算可花費上限',
-    varExpenseDescPlaceholder: '支出說明（如：幼兒園費用）',
+    varExpenseDescPlaceholder: '支出項目',
     varExpenseRow: '浮動固定支出',
     noVarExpense: '本週尚未有浮動固定支出',
     spreadLabel: '平攤兩週',
@@ -906,7 +906,7 @@ const I18N = {
     weeklyIncomeTotal: '週收入合計',
     fixedExpenseItems: '🏷️ 固定支出項目', tapToEdit: '點擊可編輯', addBillBtn: '＋ 新增固定支出',
     incomeSourcesTitle: '💰 收入來源', addIncomeSourceBtn: '＋ 新增收入來源',
-    incomeSourceNamePlaceholder: '收入名稱（如：按摩薪資、CCS補助）',
+    incomeSourceNamePlaceholder: '收入名稱',
     confirmDeleteIncome: '確認刪除此收入來源？',
     budgetCalc: '📊 預算試算', weeklyIncomeRow: '週收入', spendableExtraLabel: '本週額外進帳（進可花費）', fixedExpenseWeekly: '固定支出（週均）',
     disposableBalance: '可支配餘額', foodBudgetWeekly: '🐷 每週儲蓄目標',
@@ -926,7 +926,7 @@ const I18N = {
     weeksToGo: '週可達成', monthsToGo: '個月可達成', yearsToGo: '年可達成',
     setWeeklyBudgetFirst: '先設定固定支出以估算速度',
     autoAccumulateLabel: '自動累積實際存款', autoAccumulateSub: '每週儲蓄目標＋沒花完的結餘',
-    goalNamePlaceholder: '目標名稱（如：房子頭期款）',
+    goalNamePlaceholder: '目標名稱',
     confirmDeleteGoal: '確認刪除此儲蓄目標？',
     // Net worth (Assets & Liabilities)
     tabNetworth: '資產負債',
@@ -934,13 +934,13 @@ const I18N = {
     nwNote: '資產 − 負債 = 實際身家（淨值）',
     assetsTitle: '💚 資產', liabilitiesTitle: '❤️ 負債',
     addAssetBtn: '＋ 新增資產', addLiabilityBtn: '＋ 新增負債',
-    assetNamePlaceholder: '資產名稱（如：儲蓄帳戶、房產）',
-    liabilityNamePlaceholder: '負債名稱（如：信用卡、房貸）',
+    assetNamePlaceholder: '資產名稱',
+    liabilityNamePlaceholder: '負債名稱',
     confirmDeleteAsset: '確認刪除此資產項目？',
     confirmDeleteLiability: '確認刪除此負債項目？',
     noAssets: '尚未新增資產項目', noLiabilities: '尚未新增負債項目',
     nwLastUpdated: '最後更新',
-    fillAmtDate: '請填寫金額與日期', billNamePlaceholder: '支出名稱', amtOnlyPlaceholder: '金額',
+    fillAmtDate: '請填寫金額與日期', billNamePlaceholder: '支出名稱', amtOnlyPlaceholder: '$0',
     amountTooLarge: '金額似乎太大了，請確認輸入是否正確',
     noDescription: '（無說明）', noData: '暫無資料',
     thisWeek: '本週', weeksAgo: '週前', weeksLater: '週後',
@@ -963,18 +963,18 @@ const I18N = {
     overspendAlert: "⚠️ You've exceeded your spending limit this week!",
     tabWeek: 'This Week', tabMonth: 'Monthly Overview', tabBills: 'Income & Expenses', tabGoals: 'Savings Goals',
     addExpense: 'Add Expense',
-    descPlaceholder: 'Description (e.g. Groceries)', amtPlaceholder: 'Amount $',
+    descPlaceholder: 'Item description', amtPlaceholder: '$0',
     dateHint: 'Format: DD/MM/YYYY (Australian)',
     catFood: '🛒 Food', catTransport: '🚗 Transport', catKids: '🧸 Kids', catHealth: '💊 Health', catMisc: '📦 Other',
     addEntryBtn: '＋ Add',
     weekDetail: 'This Week\'s Details', noEntries: 'No entries yet this week 🌟',
     extraDepositTitle: '💵 Extra Money In This Week',
     extraDepositNote: 'Enter actual amount received. Choose to spread over 2 weeks, and whether it goes to spending or savings.',
-    extraDepositDescPlaceholder: 'Source (e.g. Govt subsidy, Freelance)',
+    extraDepositDescPlaceholder: 'Deposit source',
     noExtraDeposit: 'No extra money recorded this week',
     varExpenseTitle: '📋 Variable Fixed Expenses',
     varExpenseNote: 'Recurring but fluctuating (e.g. childcare) — deducted before the spending limit',
-    varExpenseDescPlaceholder: 'Expense (e.g. Childcare)',
+    varExpenseDescPlaceholder: 'Expense item',
     varExpenseRow: 'Variable Fixed Expenses',
     noVarExpense: 'No variable fixed expenses this week',
     spreadLabel: 'Spread over 2 weeks',
@@ -983,7 +983,7 @@ const I18N = {
     weeklyIncomeTotal: 'Total Weekly Income',
     fixedExpenseItems: '🏷️ Fixed Expense Items', tapToEdit: 'Tap to edit', addBillBtn: '＋ Add Fixed Expense',
     incomeSourcesTitle: '💰 Income Sources', addIncomeSourceBtn: '＋ Add Income Source',
-    incomeSourceNamePlaceholder: 'Income name (e.g. Massage salary, CCS subsidy)',
+    incomeSourceNamePlaceholder: 'Income name',
     confirmDeleteIncome: 'Delete this income source?',
     budgetCalc: '📊 Budget Breakdown', weeklyIncomeRow: 'Weekly Income', spendableExtraLabel: 'Extra In (to spending)', fixedExpenseWeekly: 'Fixed Expenses (weekly avg)',
     disposableBalance: 'Disposable Balance', foodBudgetWeekly: '🐷 Weekly Savings Target',
@@ -1003,7 +1003,7 @@ const I18N = {
     weeksToGo: 'weeks to go', monthsToGo: 'months to go', yearsToGo: 'years to go',
     setWeeklyBudgetFirst: 'Set fixed expenses to estimate timeline',
     autoAccumulateLabel: 'Auto-accumulate actual savings', autoAccumulateSub: 'Weekly target + whatever you didn\'t spend',
-    goalNamePlaceholder: 'Goal name (e.g. House deposit)',
+    goalNamePlaceholder: 'Goal name',
     confirmDeleteGoal: 'Delete this savings goal?',
     // Net worth (Assets & Liabilities)
     tabNetworth: 'Net Worth',
@@ -1011,13 +1011,13 @@ const I18N = {
     nwNote: 'Assets − Liabilities = Net Worth',
     assetsTitle: '💚 Assets', liabilitiesTitle: '❤️ Liabilities',
     addAssetBtn: '＋ Add Asset', addLiabilityBtn: '＋ Add Liability',
-    assetNamePlaceholder: 'Asset name (e.g. Savings account, Property)',
-    liabilityNamePlaceholder: 'Liability name (e.g. Credit card, Mortgage)',
+    assetNamePlaceholder: 'Asset name',
+    liabilityNamePlaceholder: 'Liability name',
     confirmDeleteAsset: 'Delete this asset?',
     confirmDeleteLiability: 'Delete this liability?',
     noAssets: 'No assets added yet', noLiabilities: 'No liabilities added yet',
     nwLastUpdated: 'Last updated',
-    fillAmtDate: 'Please fill in amount and date', billNamePlaceholder: 'Expense name', amtOnlyPlaceholder: 'Amount',
+    fillAmtDate: 'Please fill in amount and date', billNamePlaceholder: 'Expense name', amtOnlyPlaceholder: '$0',
     amountTooLarge: 'That amount looks too large — please double check',
     noDescription: '(no description)', noData: 'No data yet',
     thisWeek: 'This week', weeksAgo: 'wk ago', weeksLater: 'wk later',
@@ -1648,7 +1648,7 @@ function renderIncomeSourcesList() {
           <button class="bill-del-btn" onclick="deleteIncomeSource('${src.id}')">🗑</button>
         </div>
         <div class="bill-card-bottom">
-          <input type="number" step="0.01" value="${src.amt}" placeholder="0" inputmode="decimal"
+          <input type="number" step="0.01" value="${src.amt}" placeholder="$0" inputmode="decimal"
                  onchange="updateIncomeSource('${src.id}','amt',parseFloat(this.value)||0)"
                  onblur="updateIncomeSource('${src.id}','amt',parseFloat(this.value)||0)" />
           <select onchange="updateIncomeSource('${src.id}','freq',this.value)">${freqOpts}</select>
@@ -1750,12 +1750,13 @@ function renderExtraDepositList() {
 function refreshBillsBreakdown() {
   // Updates the budget breakdown numbers in the income & expenses tab without a full re-render
   if (document.getElementById('tab-bills').style.display === 'none') return;
+  const wo         = currentWeekOffset;
   const income     = weeklyIncome();
-  const spendExtra = getSpendableExtraForWeek(0);
+  const spendExtra = getSpendableExtraForWeek(wo);
   const fixed      = weeklyBills();
-  const varExp     = getVarExpenseForWeek(0);
+  const varExp     = getVarExpenseForWeek(wo);
   const disp       = income + spendExtra - fixed - varExp;
-  const spendLimit = weeklySpendingLimit(0);
+  const spendLimit = weeklySpendingLimit(wo);
   const set = (id,val) => { const el=document.getElementById(id); if(el) el.textContent=val; };
   set('bd-subsidy', fmt(spendExtra));
   set('bd-var-expense', varExp > 0 ? fmt(-varExp, true) : fmt(0));
@@ -1838,7 +1839,7 @@ function addExtraDeposit() {
   });
   saveExtraDeposits();
   renderExtraDepositList();
-  const descs = document.querySelectorAll('.ed-desc');
+  const descs = document.querySelectorAll('#extra-deposit-list .ed-desc');
   if (descs.length) descs[descs.length-1].focus();
 }
 
@@ -1944,12 +1945,13 @@ function renderMonth() {
 function renderBillsTab() {
   document.getElementById('savings-target-inp').value = settings.savingsTarget;
 
+  const wo         = currentWeekOffset;
   const income     = weeklyIncome();
-  const spendExtra = getSpendableExtraForWeek(0);  // this week's spendable extra deposits
+  const spendExtra = getSpendableExtraForWeek(wo);  // spendable extra deposits for viewed week
   const fixed      = weeklyBills();
-  const varExp     = getVarExpenseForWeek(0);       // this week's variable fixed expenses
+  const varExp     = getVarExpenseForWeek(wo);       // variable fixed expenses for viewed week
   const disp       = income + spendExtra - fixed - varExp;  // disposable balance
-  const spendLimit = weeklySpendingLimit(0);       // this week's limit
+  const spendLimit = weeklySpendingLimit(wo);       // viewed week's limit
   const monthlySav = settings.savingsTarget * 4.33;
 
   document.getElementById('total-income-display').textContent = fmt(income);
@@ -2156,7 +2158,7 @@ function renderGoalsTab() {
           <div class="goal-field">
             <div class="goal-field-label" data-i18n="goalTarget">${t('goalTarget')}</div>
             <input type="number" inputmode="decimal" step="100" value="${g.targetAmt}"
-                   placeholder="0" onchange="updateGoal('${g.id}','targetAmt',parseFloat(this.value)||0)" onblur="updateGoal('${g.id}','targetAmt',parseFloat(this.value)||0)" />
+                   placeholder="$0" onchange="updateGoal('${g.id}','targetAmt',parseFloat(this.value)||0)" onblur="updateGoal('${g.id}','targetAmt',parseFloat(this.value)||0)" />
           </div>
           <div class="goal-field">
             <div class="goal-field-label">${g.autoAccumulate ? t('goalAutoSaved') : t('goalSavedSoFar')}</div>
@@ -2355,6 +2357,10 @@ function changeWeek(delta) { currentWeekOffset+=delta; renderAll(); }
 
 function renderAll() {
   renderWeekLabel(); renderSummary(); renderEntries(); renderMonth();
+  // These tabs contain per-week content (extra deposits, variable expenses, this-week savings),
+  // so refresh them too when they're the visible tab and the week changes.
+  if (document.getElementById('tab-bills').style.display !== 'none') renderBillsTab();
+  if (document.getElementById('tab-goals').style.display !== 'none') renderGoalsTab();
 }
 
 // ── Init ──
