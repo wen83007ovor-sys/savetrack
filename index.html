@@ -633,6 +633,7 @@
       <div class="logo" id="logo-text">省<span>錢</span>計劃</div>
     </div>
     <div class="header-right">
+      <button class="icon-btn" id="data-menu-btn" onclick="openDataMenu()" title="Backup / Restore">💾</button>
       <button class="icon-btn" id="lang-toggle" onclick="toggleLang()" title="Switch language">🌐 <span id="lang-label">EN</span></button>
       <button class="icon-btn" id="theme-toggle" onclick="toggleTheme()" title="Switch theme">🌙</button>
     </div>
@@ -912,6 +913,9 @@ const I18N = {
     suggestedSavings: '🐷 建議每週存款', monthlySavingsGoal: '💰 月存款目標（×4.3）',
     perWeek: '/週', confirmDeleteBill: '確認刪除此固定支出項目？', confirmDeleteEntry: '確認刪除此筆記錄？',
     cancelBtn: '取消', confirmBtn: '刪除', okBtn: '知道了',
+    dataMenuTitle: '資料備份與還原', dataMenuNote: '匯出會下載一個含全部資料的 JSON 檔；匯入會用該檔覆蓋現有資料。建議定期備份，以免清除瀏覽器資料或換裝置時遺失。',
+    exportBtn: '匯出備份檔', importBtn: '匯入備份檔',
+    importConfirm: '匯入將覆蓋目前所有資料，確定繼續？', importInvalid: '檔案格式不正確，無法匯入。',
     newVersionAvailable: '🎉 有新版本可用', updateNowBtn: '立即更新',
     // Savings Goals
     totalSaved: '累積已存', autoWeeklySavings: '每週自動存款',
@@ -986,6 +990,9 @@ const I18N = {
     suggestedSavings: '🐷 Suggested Weekly Savings', monthlySavingsGoal: '💰 Monthly Savings Goal (×4.3)',
     perWeek: '/wk', confirmDeleteBill: 'Delete this fixed expense item?', confirmDeleteEntry: 'Delete this entry?',
     cancelBtn: 'Cancel', confirmBtn: 'Delete', okBtn: 'OK',
+    dataMenuTitle: 'Backup & Restore', dataMenuNote: 'Export downloads a JSON file with all your data. Import overwrites current data with that file. Back up regularly so you don\'t lose data when clearing your browser or switching devices.',
+    exportBtn: 'Export backup', importBtn: 'Import backup',
+    importConfirm: 'Importing will overwrite all current data. Continue?', importInvalid: 'Invalid file format — cannot import.',
     newVersionAvailable: '🎉 New version available', updateNowBtn: 'Update Now',
     // Savings Goals
     totalSaved: 'Total Saved', autoWeeklySavings: 'Weekly Auto-Save',
@@ -1124,6 +1131,33 @@ const FREQ_OPTIONS = [
 
 const EMOJI_LIST = ['🏠','💡','🌐','📱','🛡️','🧒','🍼','🚗','💊','🐾','📦','🎓','🏋️','☕','🎵','📺','🔧','✂️','🧹','💈'];
 
+// ── Shared emoji picker ──
+// One implementation for every card type. Handles positioning, viewport clamping,
+// outside-click dismissal. Caller supplies the emoji set and an onPick(emoji) callback.
+function openEmojiPicker(spanEl, emojiSet, onPick) {
+  document.querySelectorAll('.emoji-options').forEach(el => el.remove());
+  const picker = document.createElement('div');
+  picker.className = 'emoji-options';
+  const rect = spanEl.getBoundingClientRect();
+  let top = rect.bottom + 6, left = rect.left;
+  const pw = 260, ph = 160;
+  if (left + pw > window.innerWidth) left = window.innerWidth - pw - 8;
+  if (left < 8) left = 8;
+  if (top + ph > window.innerHeight) top = rect.top - ph - 6;
+  picker.style.cssText = `top:${top}px;left:${left}px`;
+  emojiSet.forEach(em => {
+    const s = document.createElement('span');
+    s.textContent = em;
+    s.onclick = e => { e.stopPropagation(); onPick(em); picker.remove(); };
+    picker.appendChild(s);
+  });
+  document.body.appendChild(picker);
+  setTimeout(() => document.addEventListener('click', () => picker.remove(), { once:true }), 50);
+}
+
+const INCOME_EMOJIS    = ['💼','🏛️','💻','🎨','✂️','💆','🚗','📦','🎓','🏥','🎵','💰','🌿','📱','🔧','✈️','🏋️','☕','📺','🛒'];
+const GOAL_EMOJIS      = ['🏠','🚗','✈️','👶','📱','💻','🎓','💍','🏖️','🏥','🏋️','🎵','🛋️','🧳','💰','🐣','🌿','🏦','⛵','🎯'];
+
 const DEFAULT_BILLS = [
   { id:'b1', emoji:'🏠', name:'房租',         amt:1200,   freq:'fortnightly' },
   { id:'b2', emoji:'🛡️', name:'保險',         amt:204.14, freq:'monthly' },
@@ -1173,13 +1207,7 @@ try {
   }
 } catch (e) { /* keep defaults */ }
 
-// ── Government subsidy (per-week, ACTUAL amounts entered when payment lands) ──
-// Unlike stable income sources, the subsidy amount varies each fortnight,
-// so it's recorded per-week with real received amounts. It flows into that
-// week's disposable balance → spending limit (NOT into savings like var income).
-// (old subsidy store removed — unified into extraDeposits above)
-
-// ── Extra deposits (unified system for subsidies + variable income) ──
+// ── Extra deposits (unified system: subsidies + variable income) ──
 // Stored per-week: { weekKey: [ {id, desc, amt, spread, toSavings}, ... ] }
 //   spread=true   → amount is halved across this week + next week (for fortnightly payments)
 //   toSavings=true → flows into savings accumulation (does NOT raise spending limit)
@@ -1189,7 +1217,9 @@ try {
   const stored = JSON.parse(safeGet('budget_extra_deposits', 'null'));
   if (stored && typeof stored === 'object') extraDeposits = stored;
   else {
-    // Migrate from old subsidies + varIncomes stores
+    // One-time migration from the old separate subsidies + varIncomes stores.
+    // Runs only when budget_extra_deposits doesn't yet exist; result is saved below
+    // so the legacy keys are never read again on subsequent loads.
     const oldSub = JSON.parse(safeGet('budget_subsidies', '{}')) || {};
     const oldVar = JSON.parse(safeGet('budget_var_incomes', '{}')) || {};
     for (const wk in oldSub) {
@@ -1204,6 +1234,11 @@ try {
         extraDeposits[wk].push({ id:'m'+Math.random().toString(36).slice(2,7), desc:v.desc||'', amt:v.amt||0, spread:false, toSavings:true });
       });
     }
+    // Persist the migrated result immediately, then drop the legacy keys.
+    if (Object.keys(extraDeposits).length > 0) {
+      safeSet('budget_extra_deposits', JSON.stringify(extraDeposits));
+      try { localStorage.removeItem('budget_subsidies'); localStorage.removeItem('budget_var_incomes'); } catch (e) {}
+    }
   }
 } catch (e) { extraDeposits = {}; }
 function saveExtraDeposits() { safeSet('budget_extra_deposits', JSON.stringify(extraDeposits)); }
@@ -1213,21 +1248,28 @@ function weekKey(offset) {
 }
 function getExtraDepositsForWeek(offset) { return extraDeposits[weekKey(offset)] || []; }
 
-// Amount from extra deposits that flows into THIS week's SPENDING LIMIT.
-// Includes: (a) this week's non-savings deposits, and (b) HALF of last week's spread non-savings deposits.
-function getSpendableExtraForWeek(offset) {
+// ── Unified fortnightly-spread contribution ──
+// Given a list-getter (offset → items[]), returns the amount contributing to a given week,
+// applying the "spread over 2 weeks" rule in ONE place:
+//   • non-spread item → full amount in its own week
+//   • spread item     → half in its own week + half in the following week
+// `filterFn` optionally excludes items (e.g. deposits flagged toSavings).
+function spreadContribution(getItems, offset, filterFn) {
   let total = 0;
-  // This week's deposits
-  getExtraDepositsForWeek(offset).forEach(d => {
-    if (d.toSavings) return;
-    total += d.spread ? d.amt/2 : d.amt;
+  getItems(offset).forEach(it => {
+    if (filterFn && !filterFn(it)) return;
+    total += it.spread ? (it.amt||0)/2 : (it.amt||0);
   });
-  // Last week's spread deposits contribute their second half to this week
-  getExtraDepositsForWeek(offset - 1).forEach(d => {
-    if (d.toSavings) return;
-    if (d.spread) total += d.amt/2;
+  getItems(offset - 1).forEach(it => {
+    if (filterFn && !filterFn(it)) return;
+    if (it.spread) total += (it.amt||0)/2;
   });
   return total;
+}
+
+// Amount from extra deposits that flows into THIS week's SPENDING LIMIT (excludes savings-flagged).
+function getSpendableExtraForWeek(offset) {
+  return spreadContribution(getExtraDepositsForWeek, offset, d => !d.toSavings);
 }
 
 // Total extra deposits flagged as savings, across ALL weeks (for savings accumulation)
@@ -1250,13 +1292,9 @@ try {
 function saveVarExpenses() { safeSet('budget_var_expenses', JSON.stringify(varExpenses)); }
 function getVarExpensesForWeek(offset) { return varExpenses[weekKey(offset)] || []; }
 
-// Amount of variable fixed expenses that reduces THIS week's spending limit.
-// Includes: (a) this week's expenses, and (b) HALF of last week's spread expenses.
+// Amount of variable fixed expenses that reduces THIS week's spending limit (uses the same spread rule).
 function getVarExpenseForWeek(offset) {
-  let total = 0;
-  getVarExpensesForWeek(offset).forEach(e => { total += e.spread ? e.amt/2 : e.amt; });
-  getVarExpensesForWeek(offset - 1).forEach(e => { if (e.spread) total += e.amt/2; });
-  return total;
+  return spreadContribution(getVarExpensesForWeek, offset);
 }
 
 let billIdCounter = 0;
@@ -1469,6 +1507,88 @@ function toggleTheme() {
   document.getElementById('theme-toggle').textContent = currentTheme === 'dark' ? t('themeLight') : t('themeDark');
 }
 
+// ── Data backup / restore ──
+// All persistent keys the app owns. Keeping this list in one place means export/import
+// automatically covers any future data as long as the key is added here.
+const DATA_KEYS = [
+  'budget_entries', 'budget_settings', 'budget_goals',
+  'budget_extra_deposits', 'budget_var_expenses', 'budget_networth',
+  'budget_lang', 'budget_theme'
+];
+
+function exportData() {
+  const dump = { _app: 'saving-plan', _version: 1, _exportedAt: new Date().toISOString(), data: {} };
+  DATA_KEYS.forEach(k => {
+    const v = safeGet(k, null);
+    if (v !== null) dump.data[k] = v;
+  });
+  const blob = new Blob([JSON.stringify(dump, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const stamp = new Date().toISOString().slice(0,10);
+  a.href = url;
+  a.download = `budget-backup-${stamp}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function importData(file) {
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    let parsed;
+    try {
+      parsed = JSON.parse(e.target.result);
+    } catch (err) {
+      await alertDialog(t('importInvalid'));
+      return;
+    }
+    if (!parsed || parsed._app !== 'saving-plan' || typeof parsed.data !== 'object') {
+      await alertDialog(t('importInvalid'));
+      return;
+    }
+    const ok = await confirmDialog(t('importConfirm'));
+    if (!ok) return;
+    // Restore each known key (ignore anything unexpected)
+    DATA_KEYS.forEach(k => {
+      if (parsed.data[k] !== undefined) safeSet(k, parsed.data[k]);
+    });
+    location.reload(); // reload so all in-memory state re-initialises from storage
+  };
+  reader.onerror = async () => { await alertDialog(t('importInvalid')); };
+  reader.readAsText(file);
+}
+
+function openDataMenu() {
+  // Simple two-action chooser reusing the confirm dialog styling
+  document.querySelectorAll('.confirm-overlay').forEach(el => el.remove());
+  const overlay = document.createElement('div');
+  overlay.className = 'confirm-overlay';
+  overlay.innerHTML = `
+    <div class="confirm-box">
+      <div class="confirm-message" style="font-weight:600">${t('dataMenuTitle')}</div>
+      <div style="font-size:12px;color:var(--muted);margin:6px 0 14px">${t('dataMenuNote')}</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <button class="confirm-btn confirm-btn-danger" id="dm-export">⬇️ ${t('exportBtn')}</button>
+        <button class="confirm-btn confirm-btn-danger" id="dm-import">⬆️ ${t('importBtn')}</button>
+        <button class="confirm-btn confirm-btn-cancel" id="dm-cancel">${t('cancelBtn')}</button>
+      </div>
+      <input type="file" id="dm-file" accept="application/json,.json" style="display:none" />
+    </div>`;
+  document.body.appendChild(overlay);
+  const close = () => overlay.remove();
+  overlay.querySelector('#dm-export').onclick = () => { close(); exportData(); };
+  overlay.querySelector('#dm-import').onclick = () => overlay.querySelector('#dm-file').click();
+  overlay.querySelector('#dm-cancel').onclick = close;
+  overlay.querySelector('#dm-file').onchange = (e) => {
+    const f = e.target.files[0];
+    close();
+    if (f) importData(f);
+  };
+  overlay.onclick = (e) => { if (e.target === overlay) close(); };
+}
+
 // ── Render: week label ──
 function renderWeekLabel() {
   const {monday,sunday} = getWeekDates(currentWeekOffset);
@@ -1600,35 +1720,12 @@ function updateIncomeSource(id, field, value) {
 }
 
 function pickIncomeEmoji(srcId, spanEl) {
-  document.querySelectorAll('.emoji-options').forEach(el=>el.remove());
-  const picker = document.createElement('div');
-  picker.className = 'emoji-options';
-  const rect = spanEl.getBoundingClientRect();
-  let top = rect.bottom+6, left = rect.left;
-  const pw=260, ph=160;
-  if (left+pw > window.innerWidth) left = window.innerWidth-pw-8;
-  if (left < 8) left = 8;
-  if (top+ph > window.innerHeight) top = rect.top-ph-6;
-  picker.style.cssText = `top:${top}px;left:${left}px`;
-  const INCOME_EMOJIS = ['💼','🏛️','💻','🎨','✂️','💆','🚗','📦','🎓','🏥','🎵','💰','🌿','📱','🔧','✈️','🏋️','☕','📺','🛒'];
-  INCOME_EMOJIS.forEach(em => {
-    const s = document.createElement('span'); s.textContent = em;
-    s.onclick = e => {
-      e.stopPropagation();
-      const src = settings.incomeSources.find(x=>x.id===srcId);
-      if (src) { src.emoji=em; safeSet('budget_settings',JSON.stringify(settings)); renderBillsTab(); }
-      picker.remove();
-    };
-    picker.appendChild(s);
+  openEmojiPicker(spanEl, INCOME_EMOJIS, em => {
+    const src = settings.incomeSources.find(x=>x.id===srcId);
+    if (src) { src.emoji=em; safeSet('budget_settings',JSON.stringify(settings)); renderBillsTab(); }
   });
-  document.body.appendChild(picker);
-  setTimeout(()=>document.addEventListener('click',()=>picker.remove(),{once:true}),50);
 }
 
-// ── Variable income (display-only, week tab) ──
-// Does NOT affect spending limit, carryover, or savings target.
-// User records it here as information, then manually decides how to allocate.
-// ── Government subsidy input (week tab) ──
 // ── Extra deposits (unified: subsidies, freelance, any extra money) ──
 function renderExtraDepositList() {
   const list = document.getElementById('extra-deposit-list');
@@ -1945,30 +2042,10 @@ async function deleteBill(id) {
 
 // ── Emoji picker ──
 function pickEmoji(billId, spanEl) {
-  document.querySelectorAll('.emoji-options').forEach(el=>el.remove());
-  const picker = document.createElement('div');
-  picker.className = 'emoji-options';
-  const rect = spanEl.getBoundingClientRect();
-  let top  = rect.bottom + 6;
-  let left = rect.left;
-  const pickerWidth = 260, pickerHeight = 160;
-  if (left + pickerWidth > window.innerWidth)  left = window.innerWidth - pickerWidth - 8;
-  if (left < 8) left = 8;
-  if (top + pickerHeight > window.innerHeight) top = rect.top - pickerHeight - 6;
-  picker.style.top  = top + 'px';
-  picker.style.left = left + 'px';
-  EMOJI_LIST.forEach(em => {
-    const s = document.createElement('span'); s.textContent = em;
-    s.onclick = e => {
-      e.stopPropagation();
-      const b = settings.bills.find(x=>x.id===billId);
-      if (b) { b.emoji=em; safeSet('budget_settings',JSON.stringify(settings)); renderBillsTab(); }
-      picker.remove();
-    };
-    picker.appendChild(s);
+  openEmojiPicker(spanEl, EMOJI_LIST, em => {
+    const b = settings.bills.find(x=>x.id===billId);
+    if (b) { b.emoji=em; safeSet('budget_settings',JSON.stringify(settings)); renderBillsTab(); }
   });
-  document.body.appendChild(picker);
-  setTimeout(()=>document.addEventListener('click',()=>picker.remove(),{once:true}),50);
 }
 
 // ── Entry actions ──
@@ -2176,30 +2253,10 @@ function updateGoal(id, field, value) {
 }
 
 function pickGoalEmoji(goalId, spanEl) {
-  document.querySelectorAll('.emoji-options').forEach(el=>el.remove());
-  const picker = document.createElement('div');
-  picker.className = 'emoji-options';
-  const rect = spanEl.getBoundingClientRect();
-  let top = rect.bottom + 6, left = rect.left;
-  const pw=260, ph=160;
-  if (left+pw > window.innerWidth) left = window.innerWidth-pw-8;
-  if (left < 8) left = 8;
-  if (top+ph > window.innerHeight) top = rect.top-ph-6;
-  picker.style.cssText = `top:${top}px;left:${left}px`;
-  // Extra emoji options appropriate for savings goals
-  const GOAL_EMOJIS = ['🏠','🚗','✈️','👶','📱','💻','🎓','💍','🏖️','🏥','🏋️','🎵','🛋️','🧳','💰','🐣','🌿','🏦','⛵','🎯'];
-  GOAL_EMOJIS.forEach(em => {
-    const s = document.createElement('span'); s.textContent = em;
-    s.onclick = e => {
-      e.stopPropagation();
-      const g = goals.find(x => x.id === goalId);
-      if (g) { g.emoji = em; saveGoals(); spanEl.textContent = em; }
-      picker.remove();
-    };
-    picker.appendChild(s);
+  openEmojiPicker(spanEl, GOAL_EMOJIS, em => {
+    const g = goals.find(x => x.id === goalId);
+    if (g) { g.emoji = em; saveGoals(); spanEl.textContent = em; }
   });
-  document.body.appendChild(picker);
-  setTimeout(()=>document.addEventListener('click',()=>picker.remove(),{once:true}),50);
 }
 
 // ═══════════════════════════════════════
@@ -2295,28 +2352,11 @@ function updateNwItem(id, type, field, value) {
 }
 
 function pickNwEmoji(id, type, spanEl) {
-  document.querySelectorAll('.emoji-options').forEach(el=>el.remove());
-  const picker = document.createElement('div');
-  picker.className = 'emoji-options';
-  const rect = spanEl.getBoundingClientRect();
-  let top=rect.bottom+6, left=rect.left;
-  if (left+260>window.innerWidth) left=window.innerWidth-268;
-  if (left<8) left=8;
-  if (top+160>window.innerHeight) top=rect.top-166;
-  picker.style.cssText=`top:${top}px;left:${left}px`;
   const emojis = type === 'asset' ? ASSET_EMOJIS : LIABILITY_EMOJIS;
-  emojis.forEach(em => {
-    const s=document.createElement('span'); s.textContent=em;
-    s.onclick=e=>{
-      e.stopPropagation();
-      updateNwItem(id, type, 'emoji', em);
-      spanEl.textContent=em;
-      picker.remove();
-    };
-    picker.appendChild(s);
+  openEmojiPicker(spanEl, emojis, em => {
+    updateNwItem(id, type, 'emoji', em);
+    spanEl.textContent = em;
   });
-  document.body.appendChild(picker);
-  setTimeout(()=>document.addEventListener('click',()=>picker.remove(),{once:true}),50);
 }
 
 const TAB_IDS = ['week','month','bills','goals','networth'];
