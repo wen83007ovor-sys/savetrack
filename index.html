@@ -766,11 +766,22 @@
       <button class="btn-add-bill" onclick="addBill()" data-i18n="addBillBtn">＋ 新增固定支出</button>
     </div>
 
+    <!-- Variable fixed expenses: recurring but fluctuating (e.g. childcare). Deducted before spending limit. -->
+    <div class="bills-section">
+      <div class="bills-section-header">
+        <div class="bills-section-title" data-i18n="varExpenseTitle">📋 本週浮動固定支出</div>
+        <button class="var-income-add-btn" onclick="addVarExpense()">＋</button>
+      </div>
+      <div class="var-income-note" style="margin-bottom:10px" data-i18n="varExpenseNote">每週都有但金額會變（如幼兒園），先扣掉再算可花費上限</div>
+      <div id="var-expense-list"></div>
+    </div>
+
     <div class="budget-breakdown">
       <div class="section-title" style="margin-bottom:10px" data-i18n="budgetCalc">📊 預算試算</div>
       <div class="bd-row"><span data-i18n="weeklyIncomeRow">週收入</span><span class="c-green" id="bd-income">$1,250.00</span></div>
       <div class="bd-row"><span data-i18n="spendableExtraLabel">本週額外進帳（進可花費）</span><span class="c-green" id="bd-subsidy">$0.00</span></div>
       <div class="bd-row"><span data-i18n="fixedExpenseWeekly">固定支出（週均）</span><span class="c-red" id="bd-fixed">-$755.98</span></div>
+      <div class="bd-row"><span data-i18n="varExpenseRow">浮動固定支出</span><span class="c-red" id="bd-var-expense">$0.00</span></div>
       <hr class="bd-divider">
       <div class="bd-row highlight"><span data-i18n="disposableBalance">可支配餘額</span><span class="c-accent" id="bd-disposable">$494.02</span></div>
       <hr class="bd-divider">
@@ -883,6 +894,11 @@ const I18N = {
     extraDepositNote: '入帳後填實際金額，可選平攤兩週、以及進可花費或進儲蓄',
     extraDepositDescPlaceholder: '來源說明（如：政府補助、按摩接案）',
     noExtraDeposit: '本週尚未有額外進帳',
+    varExpenseTitle: '📋 本週浮動固定支出',
+    varExpenseNote: '每週都有但金額會變（如幼兒園），先扣掉再算可花費上限',
+    varExpenseDescPlaceholder: '支出說明（如：幼兒園費用）',
+    varExpenseRow: '浮動固定支出',
+    noVarExpense: '本週尚未有浮動固定支出',
     spreadLabel: '平攤兩週',
     flowSpend: '進可花費', flowSave: '進儲蓄',
     monthlyOverview: '月度週別總覽',
@@ -952,6 +968,11 @@ const I18N = {
     extraDepositNote: 'Enter actual amount received. Choose to spread over 2 weeks, and whether it goes to spending or savings.',
     extraDepositDescPlaceholder: 'Source (e.g. Govt subsidy, Freelance)',
     noExtraDeposit: 'No extra money recorded this week',
+    varExpenseTitle: '📋 Variable Fixed Expenses',
+    varExpenseNote: 'Recurring but fluctuating (e.g. childcare) — deducted before the spending limit',
+    varExpenseDescPlaceholder: 'Expense (e.g. Childcare)',
+    varExpenseRow: 'Variable Fixed Expenses',
+    noVarExpense: 'No variable fixed expenses this week',
     spreadLabel: 'Spread over 2 weeks',
     flowSpend: 'To spending', flowSave: 'To savings',
     monthlyOverview: 'Weekly Overview (Last 5 Weeks)',
@@ -1216,6 +1237,28 @@ function getAllSavingsDeposits() {
     .reduce((s,d) => s + (d.amt||0), 0);
 }
 
+// ── Variable fixed expenses (recurring but fluctuating: childcare, etc.) ──
+// Stored per-week: { weekKey: [ {id, desc, amt, spread}, ... ] }
+// These are OBLIGATIONS deducted BEFORE the spending limit (like fixed bills, but the amount varies).
+//   spread=true → amount halved across this week + next week (for fortnightly billing)
+// No toSavings flag — an expense is always a deduction.
+let varExpenses = {};
+try {
+  const stored = JSON.parse(safeGet('budget_var_expenses', 'null'));
+  if (stored && typeof stored === 'object') varExpenses = stored;
+} catch (e) { varExpenses = {}; }
+function saveVarExpenses() { safeSet('budget_var_expenses', JSON.stringify(varExpenses)); }
+function getVarExpensesForWeek(offset) { return varExpenses[weekKey(offset)] || []; }
+
+// Amount of variable fixed expenses that reduces THIS week's spending limit.
+// Includes: (a) this week's expenses, and (b) HALF of last week's spread expenses.
+function getVarExpenseForWeek(offset) {
+  let total = 0;
+  getVarExpensesForWeek(offset).forEach(e => { total += e.spread ? e.amt/2 : e.amt; });
+  getVarExpensesForWeek(offset - 1).forEach(e => { if (e.spread) total += e.amt/2; });
+  return total;
+}
+
 let billIdCounter = 0;
 settings.bills.forEach((b) => { if (!b.id) { billIdCounter++; b.id = 'b_'+Date.now()+'_'+billIdCounter; } });
 settings.incomeSources.forEach((s,i) => { if (!s.id) s.id = 'i_'+Date.now()+'_'+i; });
@@ -1291,7 +1334,7 @@ function weeklyBills() {
 // Extra deposits flagged toSavings=false raise the limit; spread deposits contribute half this week + half next.
 function weeklySpendingLimit(offset) {
   const off = (offset === undefined) ? currentWeekOffset : offset;
-  return Math.max(0, weeklyIncome() + getSpendableExtraForWeek(off) - weeklyBills() - settings.savingsTarget);
+  return Math.max(0, weeklyIncome() + getSpendableExtraForWeek(off) - weeklyBills() - getVarExpenseForWeek(off) - settings.savingsTarget);
 }
 function fmt(n, showSign) {
   if (isNaN(n)) n = 0;
@@ -1631,12 +1674,80 @@ function refreshBillsBreakdown() {
   const income     = weeklyIncome();
   const spendExtra = getSpendableExtraForWeek(0);
   const fixed      = weeklyBills();
-  const disp       = income + spendExtra - fixed;
+  const varExp     = getVarExpenseForWeek(0);
+  const disp       = income + spendExtra - fixed - varExp;
   const spendLimit = weeklySpendingLimit(0);
   const set = (id,val) => { const el=document.getElementById(id); if(el) el.textContent=val; };
   set('bd-subsidy', fmt(spendExtra));
+  set('bd-var-expense', varExp > 0 ? fmt(-varExp, true) : fmt(0));
   set('bd-disposable', fmt(disp));
   set('bd-spend-limit', fmt(spendLimit));
+}
+
+// ── Variable fixed expenses (childcare etc. — deducted before spending limit) ──
+function renderVarExpenseList() {
+  const list = document.getElementById('var-expense-list');
+  if (!list) return;
+  const items = getVarExpensesForWeek(currentWeekOffset);
+
+  if (!items.length) {
+    list.innerHTML = `<div class="ed-empty">${t('noVarExpense')}</div>`;
+    return;
+  }
+
+  list.innerHTML = items.map(e => `
+    <div class="ed-item" id="ve-${e.id}">
+      <div class="ed-row1">
+        <input class="ed-desc" type="text" value="${escapeHtml(e.desc)}"
+               placeholder="${t('varExpenseDescPlaceholder')}"
+               oninput="updateVarExpense('${e.id}','desc',this.value)" />
+        <input class="ed-amt" type="number" inputmode="decimal" step="0.01"
+               value="${e.amt || ''}" placeholder="$0" style="color:var(--red)"
+               onchange="updateVarExpense('${e.id}','amt',parseFloat(this.value)||0)"
+               onblur="updateVarExpense('${e.id}','amt',parseFloat(this.value)||0)" />
+        <button class="ed-del" onclick="deleteVarExpense('${e.id}')">✕</button>
+      </div>
+      <div class="ed-row2">
+        <label class="ed-toggle">
+          <input type="checkbox" ${e.spread?'checked':''}
+                 onchange="updateVarExpense('${e.id}','spread',this.checked)" />
+          <span>${t('spreadLabel')}</span>
+        </label>
+      </div>
+    </div>`).join('');
+}
+
+function addVarExpense() {
+  const key = weekKey(currentWeekOffset);
+  if (!varExpenses[key]) varExpenses[key] = [];
+  varExpenses[key].push({
+    id: Date.now().toString(36)+Math.random().toString(36).slice(2,5),
+    desc: '', amt: 0, spread: false
+  });
+  saveVarExpenses();
+  renderVarExpenseList();
+  const descs = document.querySelectorAll('#var-expense-list .ed-desc');
+  if (descs.length) descs[descs.length-1].focus();
+}
+
+function deleteVarExpense(id) {
+  const key = weekKey(currentWeekOffset);
+  if (!varExpenses[key]) return;
+  varExpenses[key] = varExpenses[key].filter(e=>e.id!==id);
+  if (varExpenses[key].length === 0) delete varExpenses[key];
+  saveVarExpenses();
+  renderVarExpenseList();
+  refreshBillsBreakdown(); renderSummary(); renderMonth();
+}
+
+function updateVarExpense(id, field, value) {
+  const key = weekKey(currentWeekOffset);
+  if (!varExpenses[key]) return;
+  const item = varExpenses[key].find(e=>e.id===id);
+  if (!item) return;
+  item[field] = value;
+  saveVarExpenses();
+  if (field !== 'desc') { renderVarExpenseList(); refreshBillsBreakdown(); renderSummary(); renderMonth(); }
 }
 
 function addExtraDeposit() {
@@ -1757,14 +1868,16 @@ function renderBillsTab() {
   const income     = weeklyIncome();
   const spendExtra = getSpendableExtraForWeek(0);  // this week's spendable extra deposits
   const fixed      = weeklyBills();
-  const disp       = income + spendExtra - fixed;  // disposable = income + spendable extra - fixed
-  const spendLimit = weeklySpendingLimit(0);       // this week's limit (incl. spendable extra)
+  const varExp     = getVarExpenseForWeek(0);       // this week's variable fixed expenses
+  const disp       = income + spendExtra - fixed - varExp;  // disposable balance
+  const spendLimit = weeklySpendingLimit(0);       // this week's limit
   const monthlySav = settings.savingsTarget * 4.33;
 
   document.getElementById('total-income-display').textContent = fmt(income);
   document.getElementById('bd-income').textContent     = fmt(income);
   document.getElementById('bd-subsidy').textContent    = fmt(spendExtra);
   document.getElementById('bd-fixed').textContent      = fmt(-fixed, true);
+  document.getElementById('bd-var-expense').textContent = varExp > 0 ? fmt(-varExp, true) : fmt(0);
   document.getElementById('bd-disposable').textContent = fmt(disp);
   document.getElementById('bd-spend-limit').textContent = fmt(spendLimit);
   document.getElementById('bd-monthly-savings').textContent = '≈ '+fmt(monthlySav);
@@ -1773,6 +1886,8 @@ function renderBillsTab() {
   renderIncomeSourcesList();
   // Render the extra deposits list (now lives in this tab)
   renderExtraDepositList();
+  // Render the variable fixed expenses list
+  renderVarExpenseList();
 
   const billsList = document.getElementById('bills-list');
   billsList.innerHTML = settings.bills.map(b => {
