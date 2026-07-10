@@ -1158,24 +1158,11 @@ function openEmojiPicker(spanEl, emojiSet, onPick) {
 const INCOME_EMOJIS    = ['💼','🏛️','💻','🎨','✂️','💆','🚗','📦','🎓','🏥','🎵','💰','🌿','📱','🔧','✈️','🏋️','☕','📺','🛒'];
 const GOAL_EMOJIS      = ['🏠','🚗','✈️','👶','📱','💻','🎓','💍','🏖️','🏥','🏋️','🎵','🛋️','🧳','💰','🐣','🌿','🏦','⛵','🎯'];
 
-const DEFAULT_BILLS = [
-  { id:'b1', emoji:'🏠', name:'房租',         amt:1200,   freq:'fortnightly' },
-  { id:'b2', emoji:'🛡️', name:'保險',         amt:204.14, freq:'monthly' },
-  { id:'b3', emoji:'💡', name:'Synergy 電費', amt:257.48, freq:'bimonthly' },
-  { id:'b4', emoji:'🌐', name:'網路',         amt:70,     freq:'monthly' },
-  { id:'b5', emoji:'📱', name:'手機費 Cora',  amt:55,     freq:'monthly' },
-  { id:'b6', emoji:'📱', name:'手機費 Ryan',  amt:35,     freq:'monthly' },
-  { id:'b7', emoji:'🧒', name:'幼兒園',       amt:101,    freq:'monthly' },
-  { id:'b8', emoji:'🍼', name:'尿布',         amt:30,     freq:'monthly' },
-];
+const DEFAULT_BILLS = [];
 
-const DEFAULT_INCOME_SOURCES = [
-  { id:'i1', emoji:'💼', name:'薪資', amt:1000, freq:'weekly' },
-  // NOTE: 政府補助 is no longer a fixed income source — it's entered per-week
-  // when the actual payment lands (see subsidies store below), since the amount varies.
-];
+const DEFAULT_INCOME_SOURCES = [];
 
-const DEFAULT_SETTINGS = { savingsTarget:150, bills:DEFAULT_BILLS, incomeSources:DEFAULT_INCOME_SOURCES };
+const DEFAULT_SETTINGS = { savingsTarget:0, bills:DEFAULT_BILLS, incomeSources:DEFAULT_INCOME_SOURCES };
 
 let currentWeekOffset = 0;
 let entries  = [];
@@ -1310,13 +1297,8 @@ try {
 function saveGoals() { safeSet('budget_goals', JSON.stringify(goals)); }
 
 // ── Net Worth: Assets & Liabilities ──
-const DEFAULT_ASSETS = [
-  { id:'a1', emoji:'💰', name:'儲蓄帳戶', amt:0 },
-  { id:'a2', emoji:'💵', name:'現金',     amt:0 },
-];
-const DEFAULT_LIABILITIES = [
-  { id:'l1', emoji:'💳', name:'信用卡餘額', amt:0 },
-];
+const DEFAULT_ASSETS = [];
+const DEFAULT_LIABILITIES = [];
 
 let assets = [];
 let liabilities = [];
