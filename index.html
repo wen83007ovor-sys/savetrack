@@ -797,7 +797,7 @@
         <div class="goals-summary-value c-green" id="goals-total-saved">$0</div>
       </div>
       <div class="goals-summary-item">
-        <div class="goals-summary-label" data-i18n="thisWeekVarIncome">本週浮動收入</div>
+        <div class="goals-summary-label" data-i18n="thisWeekSaved">本週實際存入</div>
         <div class="goals-summary-value c-accent" id="goals-auto-weekly">$0</div>
       </div>
     </div>
@@ -899,13 +899,13 @@ const I18N = {
     newVersionAvailable: '🎉 有新版本可用', updateNowBtn: '立即更新',
     // Savings Goals
     totalSaved: '累積已存', autoWeeklySavings: '每週自動存款',
-    thisWeekVarIncome: '本週浮動收入（已存）',
+    thisWeekVarIncome: '本週浮動收入（已存）', thisWeekSaved: '本週實際存入',
     addGoalBtn: '＋ 新增儲蓄目標', noGoals: '還沒有設定儲蓄目標 🐷',
     goalTarget: '目標金額', goalSavedSoFar: '目前已存', goalAutoSaved: '自動累積',
     stillNeeded: '距離目標還差', goalComplete: '目標達成！',
     weeksToGo: '週可達成', monthsToGo: '個月可達成', yearsToGo: '年可達成',
     setWeeklyBudgetFirst: '先設定固定支出以估算速度',
-    autoAccumulateLabel: '自動累積每週存款', autoAccumulateSub: '每週自動加入',
+    autoAccumulateLabel: '自動累積實際存款', autoAccumulateSub: '每週儲蓄目標＋沒花完的結餘',
     goalNamePlaceholder: '目標名稱（如：房子頭期款）',
     confirmDeleteGoal: '確認刪除此儲蓄目標？',
     // Net worth (Assets & Liabilities)
@@ -968,13 +968,13 @@ const I18N = {
     newVersionAvailable: '🎉 New version available', updateNowBtn: 'Update Now',
     // Savings Goals
     totalSaved: 'Total Saved', autoWeeklySavings: 'Weekly Auto-Save',
-    thisWeekVarIncome: 'Variable Income This Week (saved)',
+    thisWeekVarIncome: 'Variable Income This Week (saved)', thisWeekSaved: 'Saved This Week',
     addGoalBtn: '＋ Add Savings Goal', noGoals: 'No savings goals yet 🐷',
     goalTarget: 'Target Amount', goalSavedSoFar: 'Saved So Far', goalAutoSaved: 'Auto-accumulated',
     stillNeeded: 'Still needed', goalComplete: 'Goal reached!',
     weeksToGo: 'weeks to go', monthsToGo: 'months to go', yearsToGo: 'years to go',
     setWeeklyBudgetFirst: 'Set fixed expenses to estimate timeline',
-    autoAccumulateLabel: 'Auto-accumulate weekly savings', autoAccumulateSub: 'Adds',
+    autoAccumulateLabel: 'Auto-accumulate actual savings', autoAccumulateSub: 'Weekly target + whatever you didn\'t spend',
     goalNamePlaceholder: 'Goal name (e.g. House deposit)',
     confirmDeleteGoal: 'Delete this savings goal?',
     // Net worth (Assets & Liabilities)
@@ -1887,41 +1887,49 @@ async function deleteEntry(id) {
 
 // Uses the unified weeklyIncome() for a conservative ETA projection on goals.
 function getWeeklySavingsRate() {
-  return settings.savingsTarget; // committed weekly savings amount
+  return settings.savingsTarget; // committed weekly savings amount (the reserved floor)
 }
 
-// Total accumulated savings = (savingsTarget × weeks with data) + all extra deposits flagged toSavings
+// Actual-balance savings method:
+//   each week you actually save = savingsTarget (reserved) + (spendingLimit - actualSpent)
+//   → underspend adds to savings, overspend erodes it (can go negative in a bad week)
+// Only weeks with logged SPENDING entries count (a blank week isn't a real "saved" week).
+// Plus all extra deposits explicitly flagged as savings.
 function getAutoAccumulatedSavings() {
   if (entries.length === 0 && Object.keys(extraDeposits).length === 0) return 0;
 
-  // Count weeks that have any data (spending entries OR any extra deposit), up to 104 weeks back
-  let weeksWithData = 0;
+  let accumulated = 0;
   for (let w = -104; w <= 0; w++) {
-    const hasEntries  = getWeekEntries(w).length > 0;
-    const hasDeposits = getExtraDepositsForWeek(w).length > 0;
-    if (hasEntries || hasDeposits) weeksWithData++;
+    const weekEntries = getWeekEntries(w);
+    if (weekEntries.length === 0) continue; // only weeks with actual spending logged
+    const spent      = weekEntries.reduce((s,e)=>s+e.amt, 0);
+    const spendLimit = weeklySpendingLimit(w);            // income + spendable extra - fixed - target
+    const leftover   = spendLimit - spent;                // +ve = underspent, -ve = overspent
+    accumulated += settings.savingsTarget + leftover;     // reserved target + what's left over
   }
 
-  if (weeksWithData === 0) return 0;
+  // Plus all extra deposits explicitly flagged as savings (across all weeks)
+  accumulated += getAllSavingsDeposits();
 
-  // Fixed savings: savingsTarget × every week that had logged data
-  const fixedSavings = getWeeklySavingsRate() * weeksWithData;
-
-  // Plus all extra deposits explicitly flagged as savings
-  const savingsDeposits = getAllSavingsDeposits();
-
-  return Math.max(0, fixedSavings + savingsDeposits);
+  return accumulated; // NB: can be negative after sustained overspending — that's the honest figure
 }
 
 function renderGoalsTab() {
-  // Second card: this week's extra deposits flagged as savings
-  const thisWeekSavings = getExtraDepositsForWeek(0).filter(d=>d.toSavings).reduce((s,d)=>s+(d.amt||0),0);
-  document.getElementById('goals-auto-weekly').textContent = fmt(thisWeekSavings);
+  // Second card: this week's ACTUAL savings = target + (spendLimit - spent this week) + savings deposits
+  const twSpent      = getWeekSpent(0);
+  const twLimit      = weeklySpendingLimit(0);
+  const twDeposits   = getExtraDepositsForWeek(0).filter(d=>d.toSavings).reduce((s,d)=>s+(d.amt||0),0);
+  const twHasData    = getWeekEntries(0).length > 0;
+  const thisWeekSaved = (twHasData ? settings.savingsTarget + (twLimit - twSpent) : 0) + twDeposits;
+  const twEl = document.getElementById('goals-auto-weekly');
+  twEl.textContent = fmt(thisWeekSaved, true);
+  twEl.className = 'goals-summary-value ' + (thisWeekSaved >= 0 ? 'c-accent' : 'c-red');
 
-  // Total accumulated savings = fixed target × weeks + all var income ever
-  // This is shown regardless of whether any goals are set
+  // Total accumulated savings (actual-balance method — can be negative after overspending)
   const autoTotal = getAutoAccumulatedSavings();
-  document.getElementById('goals-total-saved').textContent = fmt(autoTotal);
+  const totalEl = document.getElementById('goals-total-saved');
+  totalEl.textContent = fmt(autoTotal, true);
+  totalEl.className = 'goals-summary-value ' + (autoTotal >= 0 ? 'c-green' : 'c-red');
 
   const list = document.getElementById('goals-list');
   if (!goals.length) {
@@ -1935,7 +1943,7 @@ function renderGoalsTab() {
     // auto-accumulate: goal tracks the full accumulated savings pool
     // manual: goal tracks only what was manually entered as savedAmt
     const saved = g.autoAccumulate ? autoTotal : g.savedAmt;
-    const pct = g.targetAmt > 0 ? Math.min(saved / g.targetAmt * 100, 100) : 0;
+    const pct = g.targetAmt > 0 ? Math.max(0, Math.min(saved / g.targetAmt * 100, 100)) : 0;
     const remaining = Math.max(0, g.targetAmt - saved);
     const complete = saved >= g.targetAmt;
 
@@ -1987,7 +1995,7 @@ function renderGoalsTab() {
 
         <div class="goal-progress-wrap">
           <div class="goal-progress-label">
-            <span>${fmt(saved)} / ${fmt(g.targetAmt)}</span>
+            <span>${fmt(saved, true)} / ${fmt(g.targetAmt)}</span>
             <span>${Math.round(pct)}%</span>
           </div>
           <div class="goal-progress-track">
@@ -2003,7 +2011,7 @@ function renderGoalsTab() {
         <div class="goal-auto-row">
           <div class="goal-auto-label">
             <span>${t('autoAccumulateLabel')}</span>
-            <span class="goal-auto-sublabel">${t('autoAccumulateSub')} ${fmt(weeklyRate)}${t('perWeek')}</span>
+            <span class="goal-auto-sublabel">${t('autoAccumulateSub')}</span>
           </div>
           <label class="toggle-wrap">
             <input type="checkbox" ${g.autoAccumulate?'checked':''}
