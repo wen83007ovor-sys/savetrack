@@ -357,12 +357,42 @@ try {
     }
   }
 } catch (e) { extraDeposits = {}; }
+if (repairWeekKeys(extraDeposits)) safeSet('budget_extra_deposits', JSON.stringify(extraDeposits));
 function saveExtraDeposits() { safeSet('budget_extra_deposits', JSON.stringify(extraDeposits)); }
+// Local calendar date as YYYY-MM-DD. NOT the same as d.toISOString().slice(0,10), which converts
+// to UTC first — for any timezone ahead of UTC (e.g. Australia) that silently rolls back to the
+// PREVIOUS calendar day. Week keys and the date input must use the browser's own local day.
+function toLocalDateStr(d) {
+  const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,'0'), day = String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
 function weekKey(offset) {
   const { monday } = getWeekDates(offset);
-  return monday.toISOString().slice(0,10);
+  return toLocalDateStr(monday);
 }
 function getExtraDepositsForWeek(offset) { return extraDeposits[weekKey(offset)] || []; }
+
+// One-time repair for a past bug: weekKey() used to build its key via Date#toISOString(), which
+// rolled every Monday back to the preceding Sunday for anyone in a timezone ahead of UTC. Any key
+// here that lands on a Sunday is leftover mis-keyed data from that bug — shift it onto the Monday
+// it was actually meant for. (A key that already IS a genuine Monday is untouched.)
+function repairWeekKeys(dict) {
+  let changed = false;
+  Object.keys(dict).forEach(key => {
+    const d = new Date(key + 'T00:00:00');
+    if (isNaN(d) || d.getDay() !== 0) return; // only Sundays are suspect
+    const fixed = new Date(d); fixed.setDate(fixed.getDate() + 1);
+    const newKey = toLocalDateStr(fixed);
+    if (Array.isArray(dict[key])) {
+      dict[newKey] = (dict[newKey] || []).concat(dict[key]);
+    } else if (dict[newKey] === undefined) {
+      dict[newKey] = dict[key];
+    }
+    delete dict[key];
+    changed = true;
+  });
+  return changed;
+}
 
 // ── Unified fortnightly-spread contribution ──
 // Given a list-getter (offset → items[]), returns the amount contributing to a given week,
@@ -405,6 +435,7 @@ try {
   const stored = JSON.parse(safeGet('budget_var_expenses', 'null'));
   if (stored && typeof stored === 'object') varExpenses = stored;
 } catch (e) { varExpenses = {}; }
+if (repairWeekKeys(varExpenses)) safeSet('budget_var_expenses', JSON.stringify(varExpenses));
 function saveVarExpenses() { safeSet('budget_var_expenses', JSON.stringify(varExpenses)); }
 function getVarExpensesForWeek(offset) { return varExpenses[weekKey(offset)] || []; }
 
@@ -424,6 +455,7 @@ try {
   const storedSnap = JSON.parse(safeGet('budget_week_snapshots', 'null'));
   if (storedSnap && typeof storedSnap === 'object') weekSnapshots = storedSnap;
 } catch (e) { weekSnapshots = {}; }
+if (repairWeekKeys(weekSnapshots)) safeSet('budget_week_snapshots', JSON.stringify(weekSnapshots));
 function saveWeekSnapshots() { safeSet('budget_week_snapshots', JSON.stringify(weekSnapshots)); }
 
 let billIdCounter = 0;
@@ -540,7 +572,7 @@ function fmtDateShortAU(d) {
   const mm = String(d.getMonth()+1).padStart(2,'0');
   return `${dd}/${mm}`;
 }
-function fmtDateInp(d) { return d.toISOString().slice(0,10); } // yyyy-mm-dd required by <input type=date>
+function fmtDateInp(d) { return toLocalDateStr(d); } // yyyy-mm-dd required by <input type=date>
 
 // Keep the custom DD/MM/YYYY display in sync with the native (locale-dependent) date input
 function syncDateDisplay() {

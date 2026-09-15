@@ -10,7 +10,7 @@
 // this as a "new" service worker (this also helps during debugging). It is not
 // strictly required for normal updates to work, since network-first always tries
 // fresh content first — but bumping it cleans out old cache entries.
-const CACHE_VERSION = 'v3';
+const CACHE_VERSION = 'v4';
 const CACHE_NAME = `budget-tracker-${CACHE_VERSION}`;
 
 const CORE_ASSETS = [
