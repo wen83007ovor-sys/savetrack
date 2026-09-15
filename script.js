@@ -1300,7 +1300,7 @@ function renderGoalsTab() {
   // Second card: this week's ACTUAL savings = target + (spendLimit - spent this week) + savings deposits
   const twSpent      = getWeekSpent(0);
   const twLimit      = weeklySpendingLimit(0);
-  const twDeposits   = getExtraDepositsForWeek(0).filter(d=>d.toSavings).reduce((s,d)=>s+(d.amt||0),0);
+  const twDeposits   = spreadContribution(getExtraDepositsForWeek, 0, d => d.toSavings);
   const twHasData    = getWeekEntries(0).length > 0;
   const thisWeekSaved = (twHasData ? settings.savingsTarget + (twLimit - twSpent) : 0) + twDeposits;
   const twEl = document.getElementById('goals-auto-weekly');
