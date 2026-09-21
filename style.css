@@ -434,6 +434,32 @@
   .goals-summary-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; }
   .goals-summary-value { font-size: 20px; font-weight: 700; }
 
+  /* ── Pending surplus (manual confirm-to-deposit) ── */
+  .pending-surplus-title { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+  .pending-surplus-row {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 12px; margin-bottom: 10px;
+    box-shadow: 0 1px 3px var(--shadow);
+  }
+  .ps-label { font-size: 13px; color: var(--text); display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .ps-amt { font-weight: 700; color: var(--green); }
+  .ps-actions { display: flex; gap: 8px; }
+  .ps-input {
+    flex: 1; background: var(--surface); border: 1px solid var(--border);
+    color: var(--green); font-weight: 600; text-align: right;
+    border-radius: 8px; padding: 8px 10px;
+    font-family: var(--font); font-size: 15px; outline: none; min-width: 0;
+    -webkit-appearance: none;
+  }
+  .ps-input:focus { border-color: var(--green); }
+  .ps-confirm-btn {
+    background: var(--accent); border: none; color: #fff; font-weight: 600;
+    border-radius: 8px; padding: 8px 14px; font-size: 13px;
+    font-family: var(--font); cursor: pointer; flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .ps-confirm-btn:active { opacity: .8; }
+
   .goal-card {
     background: var(--card); border: 1px solid var(--border);
     border-radius: 12px; padding: 14px; margin-bottom: 12px;
