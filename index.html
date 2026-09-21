@@ -63,6 +63,16 @@
   </div>
 
   <div class="carryover-note" id="carryover-note" style="display:none"></div>
+  <div class="carryover-note" id="swept-note" style="display:none"></div>
+
+  <!-- Manual "deposit into savings" box — shown when the viewed week has a positive remaining balance -->
+  <div class="surplus-deposit-box" id="surplus-deposit-box" style="display:none">
+    <div class="sd-label"><span data-i18n="depositSavingsLabel">💰 存入儲蓄</span><span class="sd-available" id="sd-available">$0</span></div>
+    <div class="sd-actions">
+      <input type="number" inputmode="decimal" step="1" min="0" id="sd-inp" class="sd-input" />
+      <button class="sd-confirm-btn" onclick="handleConfirmSurplusDeposit()" data-i18n="confirmDepositBtn">確認存入</button>
+    </div>
+  </div>
 
   <!-- Progress -->
   <div class="budget-bar-wrap">
@@ -209,8 +219,6 @@
     </div>
 
     <div class="carryover-note" id="goals-carryover-note" style="display:none"></div>
-
-    <div id="goals-pending-surplus"></div>
 
     <div id="goals-list"></div>
 
