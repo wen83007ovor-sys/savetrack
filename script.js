@@ -57,6 +57,9 @@ const I18N = {
     autoAccumulateLabel: '自動累積實際存款', autoAccumulateSub: '每週儲蓄目標＋沒花完的結餘',
     goalNamePlaceholder: '目標名稱',
     confirmDeleteGoal: '確認刪除此儲蓄目標？',
+    depositSavingsLabel: '💰 存入儲蓄', alreadySweptNote: '💰 本週已存入儲蓄',
+    confirmDepositBtn: '確認存入',
+    invalidDepositAmt: '請輸入大於 0 的金額', depositExceedsAvailable: '金額不可超過目前剩餘',
     // Net worth (Assets & Liabilities)
     tabNetworth: '資產負債',
     totalAssets: '總資產', totalLiabilities: '總負債', netWorthLabel: '實際身家',
@@ -134,6 +137,9 @@ const I18N = {
     autoAccumulateLabel: 'Auto-accumulate actual savings', autoAccumulateSub: 'Weekly target + whatever you didn\'t spend',
     goalNamePlaceholder: 'Goal name',
     confirmDeleteGoal: 'Delete this savings goal?',
+    depositSavingsLabel: '💰 Deposit to savings', alreadySweptNote: '💰 Already deposited to savings this week',
+    confirmDepositBtn: 'Confirm deposit',
+    invalidDepositAmt: 'Enter an amount greater than 0', depositExceedsAvailable: 'Amount can\'t exceed the current remaining balance',
     // Net worth (Assets & Liabilities)
     tabNetworth: 'Net Worth',
     totalAssets: 'Total Assets', totalLiabilities: 'Total Liabilities', netWorthLabel: 'Net Worth',
@@ -458,6 +464,19 @@ try {
 if (repairWeekKeys(weekSnapshots)) safeSet('budget_week_snapshots', JSON.stringify(weekSnapshots));
 function saveWeekSnapshots() { safeSet('budget_week_snapshots', JSON.stringify(weekSnapshots)); }
 
+// ── Manually-confirmed savings sweeps ──
+// { weekKey: cumulativeAmountSwept } — how much of a given week's remaining balance the user
+// has explicitly confirmed depositing into savings (see confirmSurplusDeposit). Read by
+// getCarryoverBalance/getSweptAmountForWeek to keep swept money from also being offered as
+// spendable in later weeks.
+let weekSweeps = {};
+try {
+  const storedSweeps = JSON.parse(safeGet('budget_week_sweeps', 'null'));
+  if (storedSweeps && typeof storedSweeps === 'object') weekSweeps = storedSweeps;
+} catch (e) { weekSweeps = {}; }
+if (repairWeekKeys(weekSweeps)) safeSet('budget_week_sweeps', JSON.stringify(weekSweeps));
+function saveWeekSweeps() { safeSet('budget_week_sweeps', JSON.stringify(weekSweeps)); }
+
 let billIdCounter = 0;
 settings.bills.forEach((b) => { if (!b.id) { billIdCounter++; b.id = 'b_'+Date.now()+'_'+billIdCounter; } });
 settings.incomeSources.forEach((s,i) => { if (!s.id) s.id = 'i_'+Date.now()+'_'+i; });
@@ -613,8 +632,16 @@ function getEarliestEntryOffset() {
   return -diffWeeks; // negative offset (how many weeks back the earliest entry's week falls)
 }
 
-function getCarryoverBalance(uptoOffset) {
-  // Carryover = how much of the SPENDING LIMIT was saved or overspent in prior weeks.
+// Carryover is symmetric, same as it's always been: a week's surplus raises next week's
+// spending limit, an overspend reduces it.
+// includeSweeps (default true) additionally subtracts whatever the user has manually confirmed
+// depositing into savings from each week (getSweptAmountForWeek) — used for SPENDING-limit
+// purposes (Week/Month tabs, and the sweep box's own availability check) so swept money can't
+// also be offered as spendable in later weeks. The Goals tab's "this week saved" figure
+// deliberately calls this with includeSweeps=false: sweeping is a savings action, not a real
+// expense, so it should reduce what you can still SPEND without making it look like you saved
+// less — that surplus was already counted as savings the moment it was left unspent.
+function getCarryoverBalance(uptoOffset, includeSweeps = true) {
   // Each week's limit includes THAT week's actual subsidy, so we compute it per-week.
   // Variable income is excluded from carryover — it affects savings, NOT the spending limit.
   const earliestOffset = getEarliestEntryOffset();
@@ -623,9 +650,45 @@ function getCarryoverBalance(uptoOffset) {
     const weekEntries = getWeekEntries(w);
     if (weekEntries.length === 0) continue;
     const spent = weekEntries.reduce((s,e)=>s+e.amt, 0);
-    carryover += weeklySpendingLimit(w) - spent; // per-week limit incl. that week's subsidy
+    carryover += weeklySpendingLimit(w) - spent - (includeSweeps ? getSweptAmountForWeek(w) : 0);
   }
   return carryover;
+}
+
+// Amount already manually confirmed into savings for a given week (see confirmSurplusDeposit).
+function getSweptAmountForWeek(offset) {
+  return weekSweeps[weekKey(offset)] || 0;
+}
+
+// Manually confirm depositing (some or all of) a week's current remaining balance into savings.
+// amount must be > 0 and can't exceed that week's live remain (budget - spent - already swept).
+// This does NOT add to the savings total — that surplus is already counted via the normal
+// carryover/leftover math regardless of whether it's swept. It only permanently removes the
+// swept amount from what's available to spend going forward, so it can't be spent twice.
+function confirmSurplusDeposit(offset, amount) {
+  const spent    = getWeekSpent(offset);
+  const budget   = weeklySpendingLimit(offset) + getCarryoverBalance(offset);
+  const remain   = budget - spent;
+  const amt = Math.min(Math.round((parseFloat(amount) || 0) * 100) / 100, Math.max(0, remain));
+  if (amt <= 0) return;
+  const key = weekKey(offset);
+  weekSweeps[key] = (weekSweeps[key] || 0) + amt;
+  saveWeekSweeps();
+  renderAll();
+}
+
+// Reads the input the user typed in the "存入儲蓄" box and confirms that deposit for the
+// currently-viewed week.
+function handleConfirmSurplusDeposit() {
+  const inp = document.getElementById('sd-inp');
+  if (!inp) return;
+  const val = parseFloat(inp.value);
+  const spent  = getWeekSpent(currentWeekOffset);
+  const budget = weeklySpendingLimit(currentWeekOffset) + getCarryoverBalance(currentWeekOffset);
+  const remain = Math.max(0, budget - spent);
+  if (!val || val <= 0) { alertDialog(t('invalidDepositAmt')); return; }
+  if (val > remain + 0.001) { alertDialog(t('depositExceedsAvailable')); return; }
+  confirmSurplusDeposit(currentWeekOffset, val);
 }
 function getTotalSpent(offset) { return getWeekEntries(offset).reduce((s,e)=>s+e.amt,0); } // kept as alias for monthly view compatibility
 
@@ -683,7 +746,7 @@ function toggleTheme() {
 const DATA_KEYS = [
   'budget_entries', 'budget_settings', 'budget_goals',
   'budget_extra_deposits', 'budget_var_expenses', 'budget_networth',
-  'budget_week_snapshots', 'budget_lang', 'budget_theme'
+  'budget_week_snapshots', 'budget_week_sweeps', 'budget_lang', 'budget_theme'
 ];
 
 function exportData() {
@@ -829,10 +892,11 @@ function renderSummary() {
   const spent      = getWeekSpent(currentWeekOffset);
   const spendLimit = weeklySpendingLimit(); // DERIVED: income - fixed - savingsTarget
   const carryover  = getCarryoverBalance(currentWeekOffset);
+  const swept      = getSweptAmountForWeek(currentWeekOffset); // manually confirmed into savings — no longer spendable
   const budget     = spendLimit + carryover; // this week's actual available spending
-  const remain     = budget - spent;
-  const over       = spent > budget;
-  const pct        = budget > 0 ? Math.min(spent/budget*100, 100) : (spent > 0 ? 100 : 0);
+  const remain     = budget - spent - swept;
+  const over       = remain < 0;
+  const pct        = budget > 0 ? Math.min((spent+swept)/budget*100, 100) : ((spent+swept) > 0 ? 100 : 0);
 
   document.getElementById('sum-budget').textContent = fmt(budget);
   document.getElementById('sum-spent').textContent  = fmt(spent);
@@ -853,6 +917,32 @@ function renderSummary() {
         ? `${t('carryoverPositive')} +${fmt(carryover)}`
         : `${t('carryoverNegative')} ${fmt(carryover, true)}`;
       carryEl.className = 'carryover-note ' + (carryover > 0 ? 'c-green' : 'c-red');
+    }
+  }
+
+  // Show a note when some of this (viewed) week's balance has already been swept to savings
+  const sweptEl = document.getElementById('swept-note');
+  if (sweptEl) {
+    if (swept < 0.01) {
+      sweptEl.textContent = ''; sweptEl.style.display = 'none';
+    } else {
+      sweptEl.style.display = 'block';
+      sweptEl.textContent = `${t('alreadySweptNote')} $${swept.toFixed(2)}`;
+      sweptEl.className = 'carryover-note c-green';
+    }
+  }
+
+  // Manual "deposit into savings" box — only for the current/past week, and only when there's
+  // a positive remaining balance to offer (never for a future week, never when overspent).
+  const sweepBox = document.getElementById('surplus-deposit-box');
+  if (sweepBox) {
+    if (currentWeekOffset > 0 || remain <= 0.01) {
+      sweepBox.style.display = 'none';
+    } else {
+      sweepBox.style.display = 'block';
+      document.getElementById('sd-inp').max = remain.toFixed(2);
+      document.getElementById('sd-inp').value = remain.toFixed(2);
+      document.getElementById('sd-available').textContent = fmt(remain);
     }
   }
 
@@ -1158,11 +1248,16 @@ function renderMonth() {
     const spent      = getWeekSpent(i);
     const spendLimit = weeklySpendingLimit(i); // per-week limit incl. that week's subsidy
     const carryover  = getCarryoverBalance(i);
+    const swept      = getSweptAmountForWeek(i);
     const budget     = spendLimit + carryover;
-    const over       = spent > budget;
+    const remain     = budget - spent - swept;
+    const over       = remain < 0;
     const label = i===0 ? t('thisWeek') : `${Math.abs(i)} ${t('weeksAgo')}`;
     const carryNote = Math.abs(carryover) >= 0.01
       ? ` <span style="color:var(--muted)">(${t('spendingLimitLabel')} ${fmt(spendLimit)} ${carryover>0?'+':'-'} ${fmt(Math.abs(carryover))})</span>`
+      : '';
+    const sweptNote = swept >= 0.01
+      ? ` <span style="color:var(--muted)">(${t('alreadySweptNote')} ${fmt(swept)})</span>`
       : '';
     html += `
       <div class="month-week">
@@ -1170,9 +1265,9 @@ function renderMonth() {
           <span>${label} (${fmtDateShortAU(monday)}–${fmtDateShortAU(sunday)})</span>
           <span style="color:${over?'var(--red)':'var(--green)'}">${fmt(spent)}</span>
         </div>
-        <div class="mw-sub">${t('weeklyBudgetLabel')}: ${fmt(budget)}${carryNote} | ${over
-          ? `<span style="color:var(--red)">${t('overspendShort')} ${fmt(spent-budget)}</span>`
-          : `<span style="color:var(--green)">${t('remainShort')} ${fmt(budget-spent)}</span>`}
+        <div class="mw-sub">${t('weeklyBudgetLabel')}: ${fmt(budget)}${carryNote}${sweptNote} | ${over
+          ? `<span style="color:var(--red)">${t('overspendShort')} ${fmt(-remain)}</span>`
+          : `<span style="color:var(--green)">${t('remainShort')} ${fmt(remain)}</span>`}
         </div>
       </div>`;
   }
@@ -1308,7 +1403,10 @@ function getWeeklySavingsRate() {
 //   each week you actually save = savingsTarget (reserved) + (spendingLimit - actualSpent)
 //   → underspend adds to savings, overspend erodes it (can go negative in a bad week)
 // Only weeks with logged SPENDING entries count (a blank week isn't a real "saved" week).
-// Plus all extra deposits explicitly flagged as savings.
+// NB: this is intentionally unaffected by manual sweeps (confirmSurplusDeposit) — a week's
+// surplus is already counted here as savings regardless of whether it's later swept out of the
+// spendable pool, so sweeping never changes this total. Plus all extra deposits explicitly
+// flagged as savings.
 function getAutoAccumulatedSavings() {
   if (entries.length === 0 && Object.keys(extraDeposits).length === 0) return 0;
 
@@ -1334,7 +1432,7 @@ function renderGoalsTab() {
   // last week's overspend is deducted from — or last week's underspend is credited to — this week's figure.
   const twSpent      = getWeekSpent(0);
   const twLimit      = weeklySpendingLimit(0);
-  const twCarryover  = getCarryoverBalance(0);
+  const twCarryover  = getCarryoverBalance(0, false); // savings-only view: sweeps don't reduce this
   const twBudget     = twLimit + twCarryover;
   const twDeposits   = spreadContribution(getExtraDepositsForWeek, 0, d => d.toSavings);
   const twHasData    = getWeekEntries(0).length > 0;
