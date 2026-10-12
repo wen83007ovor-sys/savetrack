@@ -1441,20 +1441,6 @@ function renderGoalsTab() {
   twEl.textContent = fmt(thisWeekSaved, true);
   twEl.className = 'goals-summary-value ' + (thisWeekSaved >= 0 ? 'c-accent' : 'c-red');
 
-  // Show carryover note (mirrors renderSummary()'s Week tab note)
-  const goalsCarryEl = document.getElementById('goals-carryover-note');
-  if (goalsCarryEl) {
-    if (Math.abs(twCarryover) < 0.01) {
-      goalsCarryEl.textContent = ''; goalsCarryEl.style.display = 'none';
-    } else {
-      goalsCarryEl.style.display = 'block';
-      goalsCarryEl.textContent = twCarryover > 0
-        ? `${t('carryoverPositive')} +${fmt(twCarryover)}`
-        : `${t('carryoverNegative')} ${fmt(twCarryover, true)}`;
-      goalsCarryEl.className = 'carryover-note ' + (twCarryover > 0 ? 'c-green' : 'c-red');
-    }
-  }
-
   // Total accumulated savings (actual-balance method — can be negative after overspending)
   const autoTotal = getAutoAccumulatedSavings();
   const totalEl = document.getElementById('goals-total-saved');
