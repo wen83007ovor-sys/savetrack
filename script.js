@@ -702,7 +702,8 @@ function getSweptAmountForWeek(offset) {
 function confirmSurplusDeposit(offset, amount) {
   const spent    = getWeekSpent(offset);
   const budget   = weeklySpendingLimit(offset) + getCarryoverBalance(offset);
-  const remain   = budget - spent;
+  const alreadySwept = getSweptAmountForWeek(offset);
+  const remain   = budget - spent - alreadySwept;
   const amt = Math.min(Math.round((parseFloat(amount) || 0) * 100) / 100, Math.max(0, remain));
   if (amt <= 0) return;
   const key = weekKey(offset);
@@ -719,7 +720,8 @@ function handleConfirmSurplusDeposit() {
   const val = parseFloat(inp.value);
   const spent  = getWeekSpent(currentWeekOffset);
   const budget = weeklySpendingLimit(currentWeekOffset) + getCarryoverBalance(currentWeekOffset);
-  const remain = Math.max(0, budget - spent);
+  const alreadySwept = getSweptAmountForWeek(currentWeekOffset);
+  const remain = Math.max(0, budget - spent - alreadySwept);
   if (!val || val <= 0) { alertDialog(t('invalidDepositAmt')); return; }
   if (val > remain + 0.001) { alertDialog(t('depositExceedsAvailable')); return; }
   confirmSurplusDeposit(currentWeekOffset, val);
