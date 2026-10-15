@@ -567,22 +567,19 @@ function weeklySpendingLimit(offset) {
   const off = (offset === undefined) ? currentWeekOffset : offset;
   if (off < 0) {
     const wk = weekKey(off);
-    const alreadyFrozen = weekSnapshots[wk] !== undefined;
-    if (!alreadyFrozen) {
+    if (weekSnapshots[wk] === undefined) {
       weekSnapshots[wk] = computeLiveSpendingLimit(off);
       saveWeekSnapshots();
     }
     if (weekTargets[wk] === undefined) {
-      // Brand-new freeze (this exact call): today's live target is exactly what was just used
-      // above, so just record it directly.
-      // Pre-existing snapshot from before this target-tracking existed: reconstruct what the
-      // target must have been back then from the already-frozen limit, instead of wrongly
-      // assuming today's live target applied historically. Exact as long as income/fixed bills
-      // haven't changed since that week was frozen (extra deposits/variable expenses are
-      // themselves stored per-week, so they're already historically accurate either way).
-      weekTargets[wk] = alreadyFrozen
-        ? weeklyIncome() + getSpendableExtraForWeek(off) - weeklyBills() - getVarExpenseForWeek(off) - weekSnapshots[wk]
-        : settings.savingsTarget;
+      // NB: for a week that was already frozen before this target-tracking existed, this
+      // records today's live target, not necessarily the true historical one — there's no
+      // reliable way to reconstruct that after the fact (a past attempt tried deriving it from
+      // the frozen limit assuming income/bills hadn't changed since, but that broke the moment
+      // either one did, which happens routinely — producing a worse number than this honest
+      // fallback). If a target change notably shifted the accumulated total after an update,
+      // the fix is a one-time manual correction to budget_week_targets, not more auto-guessing.
+      weekTargets[wk] = settings.savingsTarget;
       saveWeekTargets();
     }
     return weekSnapshots[wk];
