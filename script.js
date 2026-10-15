@@ -464,6 +464,18 @@ try {
 if (repairWeekKeys(weekSnapshots)) safeSet('budget_week_snapshots', JSON.stringify(weekSnapshots));
 function saveWeekSnapshots() { safeSet('budget_week_snapshots', JSON.stringify(weekSnapshots)); }
 
+// What settings.savingsTarget actually was the moment each past week got frozen above — needed
+// because getAutoAccumulatedSavings() counts "reserved target + leftover" per week, and that
+// reserved amount must be the HISTORICAL target too, not today's, or raising/lowering the target
+// later would retroactively inflate/deflate every already-frozen week's contribution to the total.
+let weekTargets = {};
+try {
+  const storedTargets = JSON.parse(safeGet('budget_week_targets', 'null'));
+  if (storedTargets && typeof storedTargets === 'object') weekTargets = storedTargets;
+} catch (e) { weekTargets = {}; }
+if (repairWeekKeys(weekTargets)) safeSet('budget_week_targets', JSON.stringify(weekTargets));
+function saveWeekTargets() { safeSet('budget_week_targets', JSON.stringify(weekTargets)); }
+
 // ── Manually-confirmed savings sweeps ──
 // { weekKey: cumulativeAmountSwept } — how much of a given week's remaining balance the user
 // has explicitly confirmed depositing into savings (see confirmSurplusDeposit). Read by
@@ -555,13 +567,38 @@ function weeklySpendingLimit(offset) {
   const off = (offset === undefined) ? currentWeekOffset : offset;
   if (off < 0) {
     const wk = weekKey(off);
-    if (weekSnapshots[wk] === undefined) {
+    const alreadyFrozen = weekSnapshots[wk] !== undefined;
+    if (!alreadyFrozen) {
       weekSnapshots[wk] = computeLiveSpendingLimit(off);
       saveWeekSnapshots();
+    }
+    if (weekTargets[wk] === undefined) {
+      // Brand-new freeze (this exact call): today's live target is exactly what was just used
+      // above, so just record it directly.
+      // Pre-existing snapshot from before this target-tracking existed: reconstruct what the
+      // target must have been back then from the already-frozen limit, instead of wrongly
+      // assuming today's live target applied historically. Exact as long as income/fixed bills
+      // haven't changed since that week was frozen (extra deposits/variable expenses are
+      // themselves stored per-week, so they're already historically accurate either way).
+      weekTargets[wk] = alreadyFrozen
+        ? weeklyIncome() + getSpendableExtraForWeek(off) - weeklyBills() - getVarExpenseForWeek(off) - weekSnapshots[wk]
+        : settings.savingsTarget;
+      saveWeekTargets();
     }
     return weekSnapshots[wk];
   }
   return computeLiveSpendingLimit(off);
+}
+// The savings target that was actually in effect for a given week: frozen for past weeks
+// (falls back to today's live value only for weeks frozen before this tracking existed), live
+// for the current/future week — mirrors weeklySpendingLimit()'s own freeze/live split.
+function getSavingsTargetForWeek(offset) {
+  const off = (offset === undefined) ? currentWeekOffset : offset;
+  if (off < 0) {
+    const wk = weekKey(off);
+    return weekTargets[wk] !== undefined ? weekTargets[wk] : settings.savingsTarget;
+  }
+  return settings.savingsTarget;
 }
 function fmt(n, showSign) {
   if (isNaN(n)) n = 0;
@@ -746,7 +783,7 @@ function toggleTheme() {
 const DATA_KEYS = [
   'budget_entries', 'budget_settings', 'budget_goals',
   'budget_extra_deposits', 'budget_var_expenses', 'budget_networth',
-  'budget_week_snapshots', 'budget_week_sweeps', 'budget_lang', 'budget_theme'
+  'budget_week_snapshots', 'budget_week_sweeps', 'budget_week_targets', 'budget_lang', 'budget_theme'
 ];
 
 function exportData() {
@@ -1403,6 +1440,9 @@ function getWeeklySavingsRate() {
 //   each week you actually save = savingsTarget (reserved) + (spendingLimit - actualSpent)
 //   → underspend adds to savings, overspend erodes it (can go negative in a bad week)
 // Only weeks with logged SPENDING entries count (a blank week isn't a real "saved" week).
+// Uses getSavingsTargetForWeek() (the HISTORICAL target for past weeks), not today's live
+// settings.savingsTarget — otherwise raising/lowering the target later would retroactively
+// inflate/deflate every already-frozen week's contribution to the total.
 // NB: this is intentionally unaffected by manual sweeps (confirmSurplusDeposit) — a week's
 // surplus is already counted here as savings regardless of whether it's later swept out of the
 // spendable pool, so sweeping never changes this total. Plus all extra deposits explicitly
@@ -1417,7 +1457,7 @@ function getAutoAccumulatedSavings() {
     const spent      = weekEntries.reduce((s,e)=>s+e.amt, 0);
     const spendLimit = weeklySpendingLimit(w);            // income + spendable extra - fixed - target
     const leftover   = spendLimit - spent;                // +ve = underspent, -ve = overspent
-    accumulated += settings.savingsTarget + leftover;     // reserved target + what's left over
+    accumulated += getSavingsTargetForWeek(w) + leftover; // that week's own reserved target + what's left over
   }
 
   // Plus all extra deposits explicitly flagged as savings (across all weeks)
