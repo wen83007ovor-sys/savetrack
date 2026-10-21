@@ -1466,16 +1466,17 @@ function getAutoAccumulatedSavings() {
 }
 
 function renderGoalsTab() {
-  // Second card: this week's ACTUAL savings = target + (budget - spent this week) + savings deposits
-  // budget includes carryover from prior weeks (same as renderSummary()'s Week tab card) so that
-  // last week's overspend is deducted from — or last week's underspend is credited to — this week's figure.
+  // Second card: this week's ACTUAL savings = target + (this week's own spending limit - spent
+  // this week) + savings deposits. Deliberately self-contained — NOT carryover-adjusted — so it's
+  // exactly this week's own marginal contribution to getAutoAccumulatedSavings() below (that total
+  // already sums every week's leftover independently, so this card and the total always agree).
+  // A prior week's overspend/surplus still affects next week's SPENDING LIMIT via carryover (Week
+  // tab) — that's a separate concept from "how much did I save this week."
   const twSpent      = getWeekSpent(0);
   const twLimit      = weeklySpendingLimit(0);
-  const twCarryover  = getCarryoverBalance(0, false); // savings-only view: sweeps don't reduce this
-  const twBudget     = twLimit + twCarryover;
   const twDeposits   = spreadContribution(getExtraDepositsForWeek, 0, d => d.toSavings);
   const twHasData    = getWeekEntries(0).length > 0;
-  const thisWeekSaved = (twHasData ? settings.savingsTarget + (twBudget - twSpent) : 0) + twDeposits;
+  const thisWeekSaved = (twHasData ? getSavingsTargetForWeek(0) + (twLimit - twSpent) : 0) + twDeposits;
   const twEl = document.getElementById('goals-auto-weekly');
   twEl.textContent = fmt(thisWeekSaved, true);
   twEl.className = 'goals-summary-value ' + (thisWeekSaved >= 0 ? 'c-accent' : 'c-red');
