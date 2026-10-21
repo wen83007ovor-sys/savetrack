@@ -60,6 +60,7 @@ const I18N = {
     depositSavingsLabel: '💰 存入儲蓄', alreadySweptNote: '💰 本週已存入儲蓄',
     confirmDepositBtn: '確認存入',
     invalidDepositAmt: '請輸入大於 0 的金額', depositExceedsAvailable: '金額不可超過目前剩餘',
+    savingsAdjustmentLabel: '⚖️ 手動校正', savingsAdjustmentNote: '銀行餘額對不起來時，可以在這裡輸入正負金額微調，不用補記每一筆沒追蹤到的支出',
     // Net worth (Assets & Liabilities)
     tabNetworth: '資產負債',
     totalAssets: '總資產', totalLiabilities: '總負債', netWorthLabel: '實際身家',
@@ -140,6 +141,7 @@ const I18N = {
     depositSavingsLabel: '💰 Deposit to savings', alreadySweptNote: '💰 Already deposited to savings this week',
     confirmDepositBtn: 'Confirm deposit',
     invalidDepositAmt: 'Enter an amount greater than 0', depositExceedsAvailable: 'Amount can\'t exceed the current remaining balance',
+    savingsAdjustmentLabel: '⚖️ Manual adjustment', savingsAdjustmentNote: 'If the total doesn\'t match your bank balance, nudge it here with a +/- amount instead of logging every untracked transaction',
     // Net worth (Assets & Liabilities)
     tabNetworth: 'Net Worth',
     totalAssets: 'Total Assets', totalLiabilities: 'Total Liabilities', netWorthLabel: 'Net Worth',
@@ -297,7 +299,7 @@ const DEFAULT_BILLS = [];
 
 const DEFAULT_INCOME_SOURCES = [];
 
-const DEFAULT_SETTINGS = { savingsTarget:0, bills:DEFAULT_BILLS, incomeSources:DEFAULT_INCOME_SOURCES };
+const DEFAULT_SETTINGS = { savingsTarget:0, bills:DEFAULT_BILLS, incomeSources:DEFAULT_INCOME_SOURCES, savingsAdjustment:0 };
 
 let currentWeekOffset = 0;
 let entries  = [];
@@ -326,6 +328,12 @@ try {
       settings.savingsTarget = stored.foodBudget;
     }
     if (settings.savingsTarget === undefined) settings.savingsTarget = 150;
+    // Manual one-off calibration so the accumulated-savings total can be nudged to match real
+    // life (untracked cash spending, a bill paid as a lump sum instead of the amortized weekly
+    // reservation, etc.) without having to hunt down and log every missing entry.
+    if (typeof settings.savingsAdjustment !== 'number' || isNaN(settings.savingsAdjustment)) {
+      settings.savingsAdjustment = 0;
+    }
   }
 } catch (e) { /* keep defaults */ }
 
@@ -1447,7 +1455,9 @@ function getWeeklySavingsRate() {
 // spendable pool, so sweeping never changes this total. Plus all extra deposits explicitly
 // flagged as savings.
 function getAutoAccumulatedSavings() {
-  if (entries.length === 0 && Object.keys(extraDeposits).length === 0) return 0;
+  if (entries.length === 0 && Object.keys(extraDeposits).length === 0) {
+    return settings.savingsAdjustment || 0;
+  }
 
   let accumulated = 0;
   for (let w = -104; w <= 0; w++) {
@@ -1461,6 +1471,10 @@ function getAutoAccumulatedSavings() {
 
   // Plus all extra deposits explicitly flagged as savings (across all weeks)
   accumulated += getAllSavingsDeposits();
+
+  // Plus a manual one-off calibration (see settings.savingsAdjustment above) so the model-derived
+  // total can be nudged to match reality without chasing down every untracked transaction.
+  accumulated += settings.savingsAdjustment || 0;
 
   return accumulated; // NB: can be negative after sustained overspending — that's the honest figure
 }
@@ -1486,6 +1500,9 @@ function renderGoalsTab() {
   const totalEl = document.getElementById('goals-total-saved');
   totalEl.textContent = fmt(autoTotal, true);
   totalEl.className = 'goals-summary-value ' + (autoTotal >= 0 ? 'c-green' : 'c-red');
+
+  const adjInp = document.getElementById('savings-adjustment-inp');
+  if (adjInp && document.activeElement !== adjInp) adjInp.value = settings.savingsAdjustment || 0;
 
   const list = document.getElementById('goals-list');
   if (!goals.length) {
@@ -1577,6 +1594,15 @@ function renderGoalsTab() {
         </div>
       </div>`;
   }).join('');
+}
+
+// Manual one-off calibration (see settings.savingsAdjustment) — nudges the accumulated-savings
+// total to match reality (e.g. a bill paid as a lump sum, untracked cash spending) without having
+// to log every missing transaction.
+function updateSavingsAdjustment(value) {
+  settings.savingsAdjustment = parseFloat(value) || 0;
+  safeSet('budget_settings', JSON.stringify(settings));
+  renderGoalsTab();
 }
 
 function addGoal() {

@@ -156,6 +156,22 @@
   }
   .sd-confirm-btn:active { opacity: .8; }
 
+  .savings-adjustment-box {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 12px; margin-bottom: 16px;
+    box-shadow: 0 1px 3px var(--shadow);
+  }
+  .sa-label { font-size: 13px; color: var(--text); margin-bottom: 8px; }
+  .sa-input {
+    width: 100%; background: var(--surface); border: 1px solid var(--border);
+    color: var(--text); font-weight: 600; text-align: right;
+    border-radius: 8px; padding: 8px 10px; box-sizing: border-box;
+    font-family: var(--font); font-size: 15px; outline: none;
+    -webkit-appearance: none;
+  }
+  .sa-input:focus { border-color: var(--accent); }
+  .sa-note { font-size: 11px; color: var(--muted); margin-top: 8px; line-height: 1.5; }
+
   .budget-bar-wrap {
     background: var(--card); border: 1px solid var(--border);
     border-radius: 12px; padding: 14px 16px; margin-bottom: 16px;

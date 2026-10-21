@@ -218,6 +218,13 @@
       </div>
     </div>
 
+    <div class="savings-adjustment-box">
+      <div class="sa-label"><span data-i18n="savingsAdjustmentLabel">⚖️ 手動校正</span></div>
+      <input type="number" inputmode="decimal" step="1" id="savings-adjustment-inp" class="sa-input"
+             onchange="updateSavingsAdjustment(this.value)" onblur="updateSavingsAdjustment(this.value)" />
+      <div class="sa-note" data-i18n="savingsAdjustmentNote">銀行餘額對不起來時，可以在這裡輸入正負金額微調，不用補記每一筆沒追蹤到的支出</div>
+    </div>
+
     <div id="goals-list"></div>
 
     <button class="btn-add-goal" onclick="addGoal()" data-i18n="addGoalBtn">＋ 新增儲蓄目標</button>
