@@ -1480,14 +1480,17 @@ function getAutoAccumulatedSavings() {
 }
 
 function renderGoalsTab() {
-  // Second card: this week's ACTUAL savings = target + (this week's own spending limit - spent
-  // this week) + savings deposits. Deliberately self-contained — NOT carryover-adjusted — so it's
-  // exactly this week's own marginal contribution to getAutoAccumulatedSavings() below (that total
-  // already sums every week's leftover independently, so this card and the total always agree).
-  // A prior week's overspend/surplus still affects next week's SPENDING LIMIT via carryover (Week
-  // tab) — that's a separate concept from "how much did I save this week."
+  // Second card: this week's ACTUAL savings = target + (this week's effective spending limit -
+  // spent this week) + savings deposits. The "effective" limit is carryover-adjusted — the exact
+  // same number shown as "本週可花費上限" on the Week tab (weeklySpendingLimit + getCarryoverBalance)
+  // — so the two figures never disagree. This means it's NOT simply this week's own marginal
+  // contribution to getAutoAccumulatedSavings() below: that total sums every week's own
+  // (non-carryover-adjusted) leftover independently, so a nonzero carryover balance makes this
+  // card and the total's week-0 slice differ by that carryover amount. That's intentional — this
+  // card answers "what can I actually bank this week given my current spending cap," while the
+  // total answers "what's accumulated so far" week by week on its own terms.
   const twSpent      = getWeekSpent(0);
-  const twLimit      = weeklySpendingLimit(0);
+  const twLimit      = weeklySpendingLimit(0) + getCarryoverBalance(0);
   const twDeposits   = spreadContribution(getExtraDepositsForWeek, 0, d => d.toSavings);
   const twHasData    = getWeekEntries(0).length > 0;
   const thisWeekSaved = (twHasData ? getSavingsTargetForWeek(0) + (twLimit - twSpent) : 0) + twDeposits;
